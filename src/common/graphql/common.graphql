@@ -1,0 +1,10 @@
+scalar Date
+scalar SortOrder
+
+type Query {
+    status: String
+}
+
+input UpdateStatusInput {
+    id: String!
+}

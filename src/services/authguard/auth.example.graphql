@@ -1,0 +1,18 @@
+mutation {
+  createUser(username: "first", password: "123456") {
+    id
+  }
+}
+
+mutation {
+  login(username: "first", password: "123456") {
+    access_token
+    refresh_token
+  }
+}
+
+mutation {
+  verifyAccessToken(token: "first") {
+    success
+  }
+}

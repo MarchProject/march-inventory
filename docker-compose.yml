@@ -1,0 +1,41 @@
+version: '3'
+networks:
+  default:
+    name: example
+services:
+  api1:
+    container_name: march-core-api
+    image: my-api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./.data/:/app/.data/
+      - ./src:/app/src
+      - /app/node_modules
+    ports:
+      - 3001:3001
+  # nginx:
+  #   build: ./nginx
+  #   ports:
+  #     - '80:80'
+  #   depends_on:
+  #     - api1
+  #     - web1
+  # redis:
+  #   container_name: my-redis
+  #   image: redis:latest
+  #   restart: always
+  #   command: /bin/sh -c "redis-server --requirepass $$REDIS_HOST_PASSWORD" ['--appendonly', 'yes']
+  #   env_file:
+  #    - redis.env
+  #   environment:
+  #     - TZ=Asia/Bangkok
+  #   volumes:
+  #     # config
+  #     # - ./redis.conf:/.redis/redis.conf
+  #     # data
+  #     - ./.data/redis/data:/data
+  #     - ./.data/redis/log:/data/log
+  #   ports:
+  #     - 6379:6379

@@ -1,0 +1,99 @@
+type InventoryType {
+  id: String
+  name: String
+  description: String
+  createdBy: String
+  updatedBy: String
+  updatedAt: Date
+  createdAt: Date
+}
+
+type BrandType {
+  id: String
+  name: String
+  description: String
+  createdBy: String
+  updatedBy: String
+  updatedAt: Date
+  createdAt: Date
+}
+
+type Inventory {
+  id: String
+  inventoryTypeId: String
+  name: String!
+  amount: Int!
+  price: Int!
+  expiryDate: Date
+  description: String
+  createdBy: String
+  updatedBy: String
+  updatedAt: Date
+  createdAt: Date
+}
+
+type ResponseInventory {
+  id: String
+}
+
+type ResponseBrand {
+  id: String
+}
+
+input UpsertInventoryInput {
+  id: String
+  name: String!
+  inventoryTypeId: String
+  brandTypeId: String
+  amount: Int
+  price: Int
+  expiryDate: Date
+  description: String
+  createdBy: String!
+  updatedBy: String
+}
+
+input UpsertInventoryTypeInput {
+  id: String
+  name: String!
+  description: String
+  createdBy: String!
+  updatedBy: String
+}
+
+input UpsertBrandTypeInput {
+  id: String
+  name: String!
+  description: String
+  createdBy: String!
+  updatedBy: String
+}
+
+input ParamsInventory {
+  search: String
+  offset: Int
+  limit: Int
+}
+
+type ResponseInventories {
+  inventories: [Inventory]
+  total: Int
+}
+
+type Mutation {
+  upsertInventory(input: UpsertInventoryInput!): ResponseInventory
+  deleteInventory(id: String!): ResponseInventory
+  upsertInventoryType(input: UpsertInventoryTypeInput!): ResponseInventory
+  deleteInventoryType(id: String!): ResponseInventory
+  upsertBrandType(input: UpsertBrandTypeInput!): ResponseBrand
+  deleteBrandType(id: String!): ResponseBrand
+}
+
+type Query {
+  getInventory(id: String): Inventory
+  getInventories(params: ParamsInventory): [Inventory]
+  getInventoryType(id: String): InventoryType
+  getInventoryTypes: [InventoryType]
+  getBrandType(id: String): BrandType
+  getBrandTypes: [BrandType]
+}

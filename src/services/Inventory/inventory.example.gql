@@ -1,0 +1,119 @@
+mutation upsertInventory {
+  upsertInventory(
+    input: {
+      name: "Purina1"
+      description: "26kg"
+      createdBy: "System"
+      inventoryTypeId: "9783695a-bc6c-4a69-b983-c17fdcbfcfae"
+      brandTypeId: "45aacaa3-d871-43d3-8efb-09b2bbe99c17"
+    }
+  ) {
+    id
+  }
+}
+
+query getInventories {
+  getInventories(params: { search: "", limit: 20, offset: 0 }) {
+    id
+    name
+    description
+    createdBy
+    createdAt
+    updatedBy
+    updatedAt
+  }
+}
+
+query getInventory {
+  getInventory(id: "a8b094a0-6627-4275-a7bd-464ea162fa2d") {
+    id
+    name
+    description
+    createdBy
+    createdAt
+    updatedBy
+    updatedAt
+  }
+}
+
+query getInventoryTypes {
+  getInventoryTypes {
+    id
+    name
+    description
+    createdBy
+    createdAt
+    updatedBy
+    updatedAt
+  }
+}
+
+query getInventoryType {
+  getInventoryType(id: "530d26db-a57a-42c9-9a06-b39bb20d2540") {
+    id
+    name
+    description
+    createdBy
+    createdAt
+    updatedBy
+    updatedAt
+  }
+}
+
+query getBrandTypes {
+  getBrandTypes {
+    id
+    name
+    description
+    createdBy
+    createdAt
+    updatedBy
+    updatedAt
+  }
+}
+
+query getBrandType {
+  getBrandType(id: "530d26db-a57a-42c9-9a06-b39bb20d2540") {
+    id
+    name
+    description
+    createdBy
+    createdAt
+    updatedBy
+    updatedAt
+  }
+}
+
+mutation upsertInventoryType {
+  upsertInventoryType(
+    input: { id: "", name: "FoodDog", description: "Dog", createdBy: "system" }
+  ) {
+    id
+  }
+}
+
+mutation upsertBrandType {
+  upsertBrandType(
+    input: { id: "", name: "KANIN", description: "Cat", createdBy: "system" }
+  ) {
+    id
+  }
+}
+
+mutation deleteBrandType {
+  deleteBrandType(id: "2ce80cee-2215-40c5-9147-42894f5b5a4e") {
+    id
+  }
+}
+
+mutation deleteInventoryType {
+  deleteInventoryType(id: "97d6ef10-1f5e-4890-9e76-fa171081891d") {
+    id
+  }
+}
+
+mutation deleteInventory {
+  deleteInventory(id: "a8b094a0-6627-4275-a7bd-464ea162fa2d") {
+    id
+  }
+}
