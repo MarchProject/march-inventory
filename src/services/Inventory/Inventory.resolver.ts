@@ -5,8 +5,7 @@ import { PrismaService } from 'src/common/prisma/prisma.service'
 import { InventoryService } from './Inventory.service'
 import { AuthGuard } from '@nestjs/passport'
 import * as common from 'src/types'
-import { UserAuthGuard } from '@march/core'
-import { uamAuthRole } from '../authguard/uam'
+import { UserAuthGuard, uamAuthRole } from '@march/core'
 // import { AuthService } from './auth.service';
 
 @Resolver(() => common.Inventory)

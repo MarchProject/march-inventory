@@ -8,7 +8,7 @@ async function bootstrap() {
   app.use(json({ limit: '50mb' }))
   app.use(urlencoded({ extended: true, limit: '50mb' }))
   // app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }))
-  const port = 3001
+  const port = 3002
   app.enableCors()
 
   await app.listen(port)
