@@ -4,8 +4,8 @@ mutation upsertInventory {
       name: "Purina1"
       description: "26kg"
       createdBy: "System"
-      inventoryTypeId: "9783695a-bc6c-4a69-b983-c17fdcbfcfae"
-      brandTypeId: "45aacaa3-d871-43d3-8efb-09b2bbe99c17"
+      inventoryTypeId: "41829212-ab69-47aa-8dd6-d079fd3e9b8d"
+      brandTypeId: "7e05f44a-575f-4d46-b55b-86ef0d80353f"
     }
   ) {
     id
@@ -13,7 +13,7 @@ mutation upsertInventory {
 }
 
 query getInventories {
-  getInventories(params: { search: "", limit: 20, offset: 0 }) {
+  getInventories(params: { search: "P", limit: 20, offset: 0 }) {
     id
     name
     description
