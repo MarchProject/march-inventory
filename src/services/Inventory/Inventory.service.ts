@@ -5,37 +5,51 @@ import {
   OnModuleInit,
 } from '@nestjs/common'
 import { Logger } from '@nestjs/common'
-import * as jwt from 'jsonwebtoken'
 import { PrismaService } from 'src/common/prisma/prisma.service'
-import { createHash } from 'crypto'
-import { HttpService } from '@nestjs/axios'
 import { logContext } from 'src/common/helpers/log'
-import { url } from 'inspector'
-import { firstValueFrom } from 'rxjs'
 import * as common from 'src/types'
-
 import { v4 as uuidv4 } from 'uuid'
+import { ICurrentUser } from 'src/common/helpers/user'
+
 @Injectable()
 export class InventoryService implements OnModuleInit {
   private readonly loggers = new Logger(InventoryService.name)
 
   constructor(private readonly repos: PrismaService) {}
   onModuleInit() {}
+
   async getInventories(
     params: common.ParamsInventory,
+    req: ICurrentUser,
   ): Promise<common.Inventory[]> {
     const logctx = logContext(InventoryService, this.getInventories)
     const { search, limit, offset } = params
+    const { shopsId } = req
     try {
       const result = await this.repos.inventory.findMany({
         where: {
           deleted: false,
           name: { contains: search },
+          shopsId,
         },
         take: limit ?? 20,
         skip: offset ?? 0,
         orderBy: {
           createdAt: 'desc',
+        },
+        include: {
+          brandType: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          inventoryType: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       })
       this.loggers.debug({ result }, logctx)
@@ -46,7 +60,7 @@ export class InventoryService implements OnModuleInit {
     }
   }
 
-  async getInventory(id: string): Promise<common.Inventory> {
+  async getInventory(id: string, req: ICurrentUser): Promise<common.Inventory> {
     const logctx = logContext(InventoryService, this.getInventory)
     try {
       const result = await this.repos.inventory.findUnique({
@@ -54,23 +68,31 @@ export class InventoryService implements OnModuleInit {
           id,
         },
       })
+
+      if (req.shopsId !== result.shopsId) {
+        return null
+      }
       this.loggers.debug({ result }, logctx)
       return result
     } catch (error) {
+      console.log({ error: error.status })
       this.loggers.error(error, `[MarchERR] Select Categories error`, logctx)
       throw new HttpException('Internal Error', 500)
     }
   }
 
-  async getInventoryTypes(): Promise<common.InventoryType[]> {
+  async getInventoryTypes(req: ICurrentUser): Promise<common.InventoryType[]> {
     const logctx = logContext(InventoryService, this.getInventoryTypes)
     try {
       const result = await this.repos.inventoryType.findMany({
         where: {
           deleted: false,
+          shopsId: req.shopsId,
         },
       })
+
       this.loggers.debug({ result }, logctx)
+
       return result
     } catch (error) {
       this.loggers.error(error, `[MarchERR] Select Categories error`, logctx)
@@ -78,7 +100,10 @@ export class InventoryService implements OnModuleInit {
     }
   }
 
-  async getInventoryType(id: string): Promise<common.InventoryType> {
+  async getInventoryType(
+    id: string,
+    req: ICurrentUser,
+  ): Promise<common.InventoryType> {
     const logctx = logContext(InventoryService, this.getInventoryType)
     try {
       const result = await this.repos.inventoryType.findUnique({
@@ -86,7 +111,9 @@ export class InventoryService implements OnModuleInit {
           id,
         },
       })
-      this.loggers.debug({ result }, logctx)
+      if (req.shopsId !== result.shopsId) {
+        return null
+      }
       return result
     } catch (error) {
       this.loggers.error(error, `[MarchERR] Select Categories error`, logctx)
@@ -94,12 +121,13 @@ export class InventoryService implements OnModuleInit {
     }
   }
 
-  async getBrandTypes(): Promise<common.InventoryType[]> {
+  async getBrandTypes(req: ICurrentUser): Promise<common.InventoryType[]> {
     const logctx = logContext(InventoryService, this.getBrandTypes)
     try {
       const result = await this.repos.brandType.findMany({
         where: {
           deleted: false,
+          shopsId: req.shopsId,
         },
       })
       this.loggers.debug({ result }, logctx)
@@ -110,7 +138,10 @@ export class InventoryService implements OnModuleInit {
     }
   }
 
-  async getBrandType(id: string): Promise<common.InventoryType> {
+  async getBrandType(
+    id: string,
+    req: ICurrentUser,
+  ): Promise<common.InventoryType> {
     const logctx = logContext(InventoryService, this.getBrandType)
     try {
       const result = await this.repos.brandType.findUnique({
@@ -118,6 +149,9 @@ export class InventoryService implements OnModuleInit {
           id,
         },
       })
+      if (req.shopsId !== result.shopsId) {
+        return null
+      }
       this.loggers.debug({ result }, logctx)
       return result
     } catch (error) {
@@ -168,9 +202,23 @@ export class InventoryService implements OnModuleInit {
       throw new HttpException('Internal Error', 500)
     }
   }
-  async deleteBrandType(id: string): Promise<common.ResponseBrand> {
+  async deleteBrandType(
+    id: string,
+    req: ICurrentUser,
+  ): Promise<common.ResponseBrand> {
     const logctx = logContext(InventoryService, this.deleteBrandType)
     try {
+      const checkShopId = await this.repos.brandType.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          shopsId: true,
+        },
+      })
+      if (checkShopId.shopsId !== req.shopsId) {
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+      }
       const result = await this.repos.brandType.update({
         where: {
           id,
@@ -191,9 +239,12 @@ export class InventoryService implements OnModuleInit {
   }
 
   async upsertInventory(
-    req: common.UpsertInventoryInput,
+    input: common.UpsertInventoryInput,
+    req: ICurrentUser,
   ): Promise<common.ResponseInventory> {
     const logctx = logContext(InventoryService, this.upsertInventory)
+    const { shopsId } = req
+    console.log({ shopsId })
     const {
       id,
       name,
@@ -204,19 +255,47 @@ export class InventoryService implements OnModuleInit {
       inventoryTypeId,
       brandTypeId,
       createdBy,
-    } = req
+    } = input
     try {
+      const checkInventoryType = await this.repos.inventoryType.findUnique({
+        where: {
+          id: inventoryTypeId,
+        },
+        select: {
+          shopsId: true,
+        },
+      })
+      const checkBrandType = await this.repos.brandType.findUnique({
+        where: {
+          id: brandTypeId,
+        },
+        select: {
+          shopsId: true,
+        },
+      })
+      if (
+        checkInventoryType.shopsId !== shopsId ||
+        checkBrandType.shopsId !== shopsId
+      ) {
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+      }
+
       const findDup = await this.repos.inventory.findFirst({
         where: {
           name,
+          shopsId,
         },
         select: {
           id: true,
+          shopsId: true,
         },
       })
-
-      if (findDup)
-        throw new HttpException('Name is duplicated', HttpStatus.BAD_REQUEST)
+      if (!id && findDup) {
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+      }
+      if (id && findDup && id !== findDup.id) {
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+      }
 
       const result = await this.repos.inventory.upsert({
         where: {
@@ -229,6 +308,7 @@ export class InventoryService implements OnModuleInit {
           BrandTypeId: brandTypeId,
           price,
           expiryDate,
+          shopsId,
           description,
           deleted: false,
           createdBy,
@@ -240,6 +320,10 @@ export class InventoryService implements OnModuleInit {
         update: {
           id,
           name,
+          amount,
+          price,
+          InventoryTypeId: inventoryTypeId,
+          BrandTypeId: brandTypeId,
           description,
           deleted: false,
           createdBy,
@@ -257,31 +341,40 @@ export class InventoryService implements OnModuleInit {
       throw new HttpException(error.message, error.status)
     }
   }
+
   async upsertInventoryType(
-    req: common.UpsertInventoryTypeInput,
+    input: common.UpsertInventoryTypeInput,
+    req: ICurrentUser,
   ): Promise<common.ResponseInventory> {
-    const logctx = logContext(InventoryService, this.upsertInventory)
-    const { id, name, description, createdBy } = req
+    const logctx = logContext(InventoryService, this.upsertInventoryType)
+    const { id, name, description, createdBy } = input
+    const { shopsId } = req
     try {
       const findDup = await this.repos.inventoryType.findFirst({
         where: {
-          name,
+          name: name + '|' + shopsId,
+          shopsId,
         },
         select: {
           id: true,
+          shopsId: true,
         },
       })
-
-      if (findDup)
-        throw new HttpException('Name is duplicated', HttpStatus.BAD_REQUEST)
+      if (!id && findDup) {
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+      }
+      if (id && findDup && id !== findDup.id) {
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+      }
 
       const result = await this.repos.inventoryType.upsert({
         where: {
           id: id || uuidv4(),
         },
         create: {
-          name,
+          name: name + '|' + shopsId,
           description,
+          shopsId,
           deleted: false,
           createdBy,
           updatedBy: createdBy,
@@ -291,7 +384,7 @@ export class InventoryService implements OnModuleInit {
         },
         update: {
           id,
-          name,
+          name: name + '|' + shopsId,
           description,
           deleted: false,
           createdBy,
@@ -311,29 +404,37 @@ export class InventoryService implements OnModuleInit {
   }
 
   async upsertBrandType(
-    req: common.UpsertBrandTypeInput,
+    input: common.UpsertBrandTypeInput,
+    req: ICurrentUser,
   ): Promise<common.ResponseBrand> {
     const logctx = logContext(InventoryService, this.upsertBrandType)
-    const { id, name, description, createdBy } = req
+    const { id, name, description, createdBy } = input
+    const { shopsId } = req
     try {
       const findDup = await this.repos.brandType.findFirst({
         where: {
-          name,
+          name: name + '|' + shopsId,
+          shopsId,
         },
         select: {
           id: true,
         },
       })
 
-      if (findDup)
-        throw new HttpException('Name is duplicated', HttpStatus.BAD_REQUEST)
+      if (!id && findDup) {
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+      }
+      if (id && findDup && id !== findDup.id) {
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+      }
 
       const result = await this.repos.brandType.upsert({
         where: {
           id: id || uuidv4(),
         },
         create: {
-          name,
+          shopsId,
+          name: name + '|' + shopsId,
           description,
           deleted: false,
           createdBy,
@@ -344,7 +445,7 @@ export class InventoryService implements OnModuleInit {
         },
         update: {
           id,
-          name,
+          name: name + '|' + shopsId,
           description,
           deleted: false,
           createdBy,

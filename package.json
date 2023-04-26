@@ -25,7 +25,8 @@
     "migrate:dev": "export $(cat dev.env | xargs) && prisma migrate dev --preview-feature",
     "gql:ts:gen": "ts-node ./scripts/generate-typings.ts",
     "seed": "export $(cat dev.env | xargs) && ts-node prisma/seed/index.ts",
-    "prisma:gen": "prisma generate --schema=./prisma/schema.prisma"
+    "prisma:gen": "prisma generate --schema=./prisma/schema.prisma",
+    "rebuild":"rm -rf node_modules && pnpm i . && pnpm prisma:gen"
   },
   "dependencies": {
     "@apollo/gateway": "^0.29.1",

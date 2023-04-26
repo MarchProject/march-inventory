@@ -12,6 +12,7 @@ generator client {
 model BrandType {
   id String @id @default(uuid())
   name String @unique
+  shopsId String @db.VarChar(40)
   description String
   deleted Boolean @default(false)
   createdBy String
@@ -24,6 +25,7 @@ model BrandType {
 model InventoryType {
   id String @id @default(uuid())
   name String @unique
+  shopsId String @db.VarChar(40)
   description String
   deleted Boolean @default(false)
   createdBy String
@@ -44,6 +46,7 @@ model Inventory {
   price Int @default(0)
   sold Int @default(0)
   expiryDate DateTime? 
+  shopsId String? @db.VarChar(40)
   description String?
   deleted Boolean @default(false)
   createdBy String

@@ -25,6 +25,8 @@ type Inventory {
   amount: Int!
   price: Int!
   expiryDate: Date
+  brandType: BrandType
+  inventoryType: InventoryType
   description: String
   createdBy: String
   updatedBy: String
