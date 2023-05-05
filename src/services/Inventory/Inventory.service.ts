@@ -257,6 +257,31 @@ export class InventoryService implements OnModuleInit {
       createdBy,
     } = input
     try {
+      const removeDel = await this.repos.inventory.findFirst({
+        where: {
+          shopsId,
+          name: name + '|' + shopsId,
+          deleted: true,
+        },
+        select: {
+          id: true,
+        },
+      })
+      if (removeDel) {
+        const updateDelete = await this.repos.inventory.update({
+          where: {
+            id: removeDel.id,
+          },
+          data: {
+            deleted: false,
+          },
+          select: {
+            id: true,
+          },
+        })
+
+        return { id: updateDelete.id }
+      }
       const checkInventoryType = await this.repos.inventoryType.findUnique({
         where: {
           id: inventoryTypeId,
@@ -282,7 +307,7 @@ export class InventoryService implements OnModuleInit {
 
       const findDup = await this.repos.inventory.findFirst({
         where: {
-          name,
+          name: name + '|' + shopsId,
           shopsId,
         },
         select: {
@@ -291,7 +316,7 @@ export class InventoryService implements OnModuleInit {
         },
       })
       if (!id && findDup) {
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+        throw new HttpException('Duplicated Name', HttpStatus.BAD_REQUEST)
       }
       if (id && findDup && id !== findDup.id) {
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
@@ -302,7 +327,7 @@ export class InventoryService implements OnModuleInit {
           id: id || uuidv4(),
         },
         create: {
-          name,
+          name: name + '|' + shopsId,
           amount,
           InventoryTypeId: inventoryTypeId,
           BrandTypeId: brandTypeId,
@@ -319,7 +344,7 @@ export class InventoryService implements OnModuleInit {
         },
         update: {
           id,
-          name,
+          name: name + '|' + shopsId,
           amount,
           price,
           InventoryTypeId: inventoryTypeId,
@@ -350,6 +375,31 @@ export class InventoryService implements OnModuleInit {
     const { id, name, description, createdBy } = input
     const { shopsId } = req
     try {
+      const removeDel = await this.repos.inventoryType.findFirst({
+        where: {
+          shopsId,
+          name: name + '|' + shopsId,
+          deleted: true,
+        },
+        select: {
+          id: true,
+        },
+      })
+      if (removeDel) {
+        const updateDelete = await this.repos.inventoryType.update({
+          where: {
+            id: removeDel.id,
+          },
+          data: {
+            deleted: false,
+          },
+          select: {
+            id: true,
+          },
+        })
+
+        return { id: updateDelete.id }
+      }
       const findDup = await this.repos.inventoryType.findFirst({
         where: {
           name: name + '|' + shopsId,
@@ -361,7 +411,7 @@ export class InventoryService implements OnModuleInit {
         },
       })
       if (!id && findDup) {
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+        throw new HttpException('Duplicated Name', HttpStatus.BAD_REQUEST)
       }
       if (id && findDup && id !== findDup.id) {
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
@@ -411,6 +461,32 @@ export class InventoryService implements OnModuleInit {
     const { id, name, description, createdBy } = input
     const { shopsId } = req
     try {
+      const removeDel = await this.repos.brandType.findFirst({
+        where: {
+          shopsId,
+          name: name + '|' + shopsId,
+          deleted: true,
+        },
+        select: {
+          id: true,
+        },
+      })
+      if (removeDel) {
+        const updateDelete = await this.repos.brandType.update({
+          where: {
+            id: removeDel.id,
+          },
+          data: {
+            deleted: false,
+          },
+          select: {
+            id: true,
+          },
+        })
+
+        return { id: updateDelete.id }
+      }
+
       const findDup = await this.repos.brandType.findFirst({
         where: {
           name: name + '|' + shopsId,
@@ -422,7 +498,7 @@ export class InventoryService implements OnModuleInit {
       })
 
       if (!id && findDup) {
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+        throw new HttpException('Duplicated Name', HttpStatus.BAD_REQUEST)
       }
       if (id && findDup && id !== findDup.id) {
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
