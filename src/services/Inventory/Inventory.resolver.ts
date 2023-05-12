@@ -27,7 +27,7 @@ export class InventoryResolver {
   async getInventories(
     @Args('params') params: common.ParamsInventory,
     @CurrentUser() req: ICurrentUser,
-  ): Promise<common.Inventory[]> {
+  ): Promise<common.ResponseInventories> {
     const logctx = logContext(InventoryResolver, this.getInventories)
     const result = await this.inventoryService.getInventories(params, req)
     this.loggers.debug({ result }, logctx)

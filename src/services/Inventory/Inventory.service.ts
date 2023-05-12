@@ -21,18 +21,34 @@ export class InventoryService implements OnModuleInit {
   async getInventories(
     params: common.ParamsInventory,
     req: ICurrentUser,
-  ): Promise<common.Inventory[]> {
+  ): Promise<common.ResponseInventories> {
     const logctx = logContext(InventoryService, this.getInventories)
-    const { search, limit, offset } = params
+    const { search, limit, pageNo, type, brand } = params
     const { shopsId } = req
+    const _pageNo = pageNo ?? 1
+    const offset = _pageNo * limit - limit ?? undefined
+    const skip = offset ?? 0
+    console.log({ _pageNo, offset, skip })
+    const whereCondition = {
+      deleted: false,
+      name: { contains: search },
+
+      inventoryType: type
+        ? {
+            id: type,
+          }
+        : {},
+      brandType: brand
+        ? {
+            id: brand,
+          }
+        : {},
+      shopsId,
+    }
     try {
       const result = await this.repos.inventory.findMany({
-        where: {
-          deleted: false,
-          name: { contains: search },
-          shopsId,
-        },
-        take: limit ?? 20,
+        where: whereCondition,
+        take: limit ?? 30,
         skip: offset ?? 0,
         orderBy: {
           createdAt: 'desc',
@@ -52,8 +68,18 @@ export class InventoryService implements OnModuleInit {
           },
         },
       })
+      const totalRow = await this.repos.inventory.count({
+        where: whereCondition,
+      })
       this.loggers.debug({ result }, logctx)
-      return result
+      const totalPage = Math.ceil(totalRow / limit)
+      return {
+        inventories: result,
+        pageLimit: limit,
+        pageNo,
+        totalPage,
+        totalRow,
+      }
     } catch (error) {
       this.loggers.error(error, `[MarchERR] Select Categories error`, logctx)
       throw new HttpException('Internal Error', 500)

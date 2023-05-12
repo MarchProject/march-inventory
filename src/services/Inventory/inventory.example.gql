@@ -13,14 +13,32 @@ mutation upsertInventory {
 }
 
 query getInventories {
-  getInventories(params: { search: "P", limit: 20, offset: 0 }) {
-    id
-    name
-    description
-    createdBy
-    createdAt
-    updatedBy
-    updatedAt
+  getInventories(
+    params: { search: "P", type: "", brand: "", limit: 30, pageNo: 1 }
+  ) {
+    inventories {
+      id
+      name
+      amount
+      sold
+      price
+      inventoryType {
+        name
+      }
+      brandType {
+        name
+      }
+      description
+      expiryDate
+      createdBy
+      createdAt
+      updatedBy
+      updatedAt
+    }
+    pageNo
+    pageLimit
+    totalPage
+    totalRow
   }
 }
 

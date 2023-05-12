@@ -1,5 +1,6 @@
 
-/** ------------------------------------------------------
+/*
+ * ------------------------------------------------------
  * THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
  * -------------------------------------------------------
  */
@@ -8,7 +9,9 @@
 /* eslint-disable */
 export class ParamsInventory {
     search?: string;
-    offset?: number;
+    type?: string;
+    brand?: string;
+    pageNo?: number;
     limit?: number;
 }
 
@@ -60,6 +63,7 @@ export class Inventory {
     inventoryTypeId?: string;
     name: string;
     amount: number;
+    sold?: number;
     price: number;
     expiryDate?: Date;
     brandType?: BrandType;
@@ -100,7 +104,7 @@ export abstract class IQuery {
 
     abstract getInventory(id?: string): Inventory | Promise<Inventory>;
 
-    abstract getInventories(params?: ParamsInventory): Inventory[] | Promise<Inventory[]>;
+    abstract getInventories(params?: ParamsInventory): ResponseInventories | Promise<ResponseInventories>;
 
     abstract getInventoryType(id?: string): InventoryType | Promise<InventoryType>;
 
@@ -117,7 +121,10 @@ export class ResponseBrand {
 
 export class ResponseInventories {
     inventories?: Inventory[];
-    total?: number;
+    pageLimit?: number;
+    pageNo?: number;
+    totalPage?: number;
+    totalRow?: number;
 }
 
 export class ResponseInventory {

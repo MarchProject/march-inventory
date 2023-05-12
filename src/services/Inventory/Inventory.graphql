@@ -23,6 +23,7 @@ type Inventory {
   inventoryTypeId: String
   name: String!
   amount: Int!
+  sold: Int
   price: Int!
   expiryDate: Date
   brandType: BrandType
@@ -73,13 +74,18 @@ input UpsertBrandTypeInput {
 
 input ParamsInventory {
   search: String
-  offset: Int
+  type: String
+  brand: String
+  pageNo: Int
   limit: Int
 }
 
 type ResponseInventories {
   inventories: [Inventory]
-  total: Int
+  pageLimit: Int
+  pageNo: Int
+  totalPage: Int
+  totalRow: Int
 }
 
 type Mutation {
@@ -93,7 +99,7 @@ type Mutation {
 
 type Query {
   getInventory(id: String): Inventory
-  getInventories(params: ParamsInventory): [Inventory]
+  getInventories(params: ParamsInventory): ResponseInventories
   getInventoryType(id: String): InventoryType
   getInventoryTypes: [InventoryType]
   getBrandType(id: String): BrandType
