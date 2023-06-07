@@ -9,9 +9,21 @@
 /* eslint-disable */
 export class ParamsInventory {
     search?: string;
-    type?: string;
-    brand?: string;
+    type?: string[];
+    brand?: string[];
     pageNo?: number;
+    limit?: number;
+}
+
+export class ParamsInventoryBrand {
+    search?: string;
+    offset?: number;
+    limit?: number;
+}
+
+export class ParamsInventoryType {
+    search?: string;
+    offset?: number;
     limit?: number;
 }
 
@@ -108,11 +120,11 @@ export abstract class IQuery {
 
     abstract getInventoryType(id?: string): InventoryType | Promise<InventoryType>;
 
-    abstract getInventoryTypes(): InventoryType[] | Promise<InventoryType[]>;
+    abstract getInventoryTypes(params?: ParamsInventoryType): InventoryType[] | Promise<InventoryType[]>;
 
     abstract getBrandType(id?: string): BrandType | Promise<BrandType>;
 
-    abstract getBrandTypes(): BrandType[] | Promise<BrandType[]>;
+    abstract getBrandTypes(params?: ParamsInventoryBrand): BrandType[] | Promise<BrandType[]>;
 }
 
 export class ResponseBrand {

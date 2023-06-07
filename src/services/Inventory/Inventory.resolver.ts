@@ -1,14 +1,5 @@
-import {
-  Resolver,
-  Mutation,
-  Args,
-  Query,
-} from '@nestjs/graphql'
-import {
-  Inject,
-  Logger,
-  UseGuards,
-} from '@nestjs/common'
+import { Resolver, Mutation, Args, Query } from '@nestjs/graphql'
+import { Inject, Logger, UseGuards } from '@nestjs/common'
 import { logContext } from 'src/common/helpers/log'
 import { InventoryService } from './Inventory.service'
 import * as common from 'src/types'
@@ -30,7 +21,7 @@ export class InventoryResolver {
   ): Promise<common.ResponseInventories> {
     const logctx = logContext(InventoryResolver, this.getInventories)
     const result = await this.inventoryService.getInventories(params, req)
-    this.loggers.debug({ result }, logctx)
+    // this.loggers.debug({ result }, logctx)
     return result
   }
 
@@ -50,9 +41,10 @@ export class InventoryResolver {
   @Query(() => [common.Inventory], { name: 'getInventoryTypes' })
   async getInventoryTypes(
     @CurrentUser() req: ICurrentUser,
+    @Args('params') params: common.ParamsInventoryType,
   ): Promise<common.InventoryType[]> {
     const logctx = logContext(InventoryResolver, this.getInventories)
-    const result = await this.inventoryService.getInventoryTypes(req)
+    const result = await this.inventoryService.getInventoryTypes(req, params)
     this.loggers.debug({ result }, logctx)
     return result
   }
@@ -73,9 +65,10 @@ export class InventoryResolver {
   @Query(() => [common.Inventory], { name: 'getBrandTypes' })
   async getBrandTypes(
     @CurrentUser() req: ICurrentUser,
+    @Args('params') params: common.ParamsInventoryBrand,
   ): Promise<common.BrandType[]> {
     const logctx = logContext(InventoryResolver, this.getBrandTypes)
-    const result = await this.inventoryService.getBrandTypes(req)
+    const result = await this.inventoryService.getBrandTypes(req, params)
     this.loggers.debug({ result }, logctx)
     return result
   }

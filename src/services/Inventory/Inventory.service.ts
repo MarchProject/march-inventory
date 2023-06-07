@@ -10,6 +10,7 @@ import { logContext } from 'src/common/helpers/log'
 import * as common from 'src/types'
 import { v4 as uuidv4 } from 'uuid'
 import { ICurrentUser } from 'src/common/helpers/user'
+import { mapFunction } from '@march/core'
 
 @Injectable()
 export class InventoryService implements OnModuleInit {
@@ -28,21 +29,26 @@ export class InventoryService implements OnModuleInit {
     const _pageNo = pageNo ?? 1
     const offset = _pageNo * limit - limit ?? undefined
     const skip = offset ?? 0
-    console.log({ _pageNo, offset, skip })
+    const brandIds = mapFunction(brand, 'id')
+    const typeIds = mapFunction(type, 'id')
+    console.log({ _pageNo, offset, skip, search })
+
     const whereCondition = {
       deleted: false,
-      name: { contains: search },
+      name: { contains: search + '|%' },
 
-      inventoryType: type
-        ? {
-            id: type,
-          }
-        : {},
-      brandType: brand
-        ? {
-            id: brand,
-          }
-        : {},
+      inventoryType:
+        typeIds.length > 0
+          ? {
+              OR: typeIds,
+            }
+          : {},
+      brandType:
+        brandIds.length > 0
+          ? {
+              OR: brandIds,
+            }
+          : {},
       shopsId,
     }
     try {
@@ -71,8 +77,9 @@ export class InventoryService implements OnModuleInit {
       const totalRow = await this.repos.inventory.count({
         where: whereCondition,
       })
-      this.loggers.debug({ result }, logctx)
       const totalPage = Math.ceil(totalRow / limit)
+      this.loggers.debug({ result: result.length, limit, totalPage }, logctx)
+
       return {
         inventories: result,
         pageLimit: limit,
@@ -107,14 +114,23 @@ export class InventoryService implements OnModuleInit {
     }
   }
 
-  async getInventoryTypes(req: ICurrentUser): Promise<common.InventoryType[]> {
+  async getInventoryTypes(
+    req: ICurrentUser,
+    params: common.ParamsInventoryType,
+  ): Promise<common.InventoryType[]> {
     const logctx = logContext(InventoryService, this.getInventoryTypes)
     try {
+      const { search, limit, offset } = params
       const result = await this.repos.inventoryType.findMany({
         where: {
+          name: {
+            contains: search.split('|')[0],
+          },
           deleted: false,
           shopsId: req.shopsId,
         },
+        skip: offset,
+        take: limit,
       })
 
       this.loggers.debug({ result }, logctx)
@@ -147,14 +163,24 @@ export class InventoryService implements OnModuleInit {
     }
   }
 
-  async getBrandTypes(req: ICurrentUser): Promise<common.InventoryType[]> {
+  async getBrandTypes(
+    req: ICurrentUser,
+    params: common.ParamsInventoryBrand,
+  ): Promise<common.InventoryType[]> {
     const logctx = logContext(InventoryService, this.getBrandTypes)
     try {
+      const { search, limit, offset } = params
+
       const result = await this.repos.brandType.findMany({
         where: {
+          name: {
+            contains: search.split('|')[0],
+          },
           deleted: false,
           shopsId: req.shopsId,
         },
+        skip: offset,
+        take: limit,
       })
       this.loggers.debug({ result }, logctx)
       return result

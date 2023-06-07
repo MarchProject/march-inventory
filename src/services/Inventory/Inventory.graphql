@@ -74,9 +74,21 @@ input UpsertBrandTypeInput {
 
 input ParamsInventory {
   search: String
-  type: String
-  brand: String
+  type: [String]
+  brand: [String]
   pageNo: Int
+  limit: Int
+}
+
+input ParamsInventoryType {
+  search: String
+  offset: Int
+  limit: Int
+}
+
+input ParamsInventoryBrand {
+  search: String
+  offset: Int
   limit: Int
 }
 
@@ -101,7 +113,7 @@ type Query {
   getInventory(id: String): Inventory
   getInventories(params: ParamsInventory): ResponseInventories
   getInventoryType(id: String): InventoryType
-  getInventoryTypes: [InventoryType]
+  getInventoryTypes(params: ParamsInventoryType): [InventoryType]
   getBrandType(id: String): BrandType
-  getBrandTypes: [BrandType]
+  getBrandTypes(params: ParamsInventoryBrand): [BrandType]
 }
