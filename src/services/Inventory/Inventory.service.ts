@@ -11,6 +11,7 @@ import * as common from 'src/types'
 import { v4 as uuidv4 } from 'uuid'
 import { ICurrentUser } from 'src/common/helpers/user'
 import { mapFunction } from '@march/core'
+import { get } from 'lodash'
 
 @Injectable()
 export class InventoryService implements OnModuleInit {
@@ -24,19 +25,19 @@ export class InventoryService implements OnModuleInit {
     req: ICurrentUser,
   ): Promise<common.ResponseInventories> {
     const logctx = logContext(InventoryService, this.getInventories)
-    const { search, limit, pageNo, type, brand } = params
-    const { shopsId } = req
+    const { search, limit, pageNo, type, brand, favorite } = params
+    const { shopsId, userId } = req
     const _pageNo = pageNo ?? 1
     const offset = _pageNo * limit - limit ?? undefined
     const skip = offset ?? 0
     const brandIds = mapFunction(brand, 'id')
     const typeIds = mapFunction(type, 'id')
-    console.log({ _pageNo, offset, skip, search })
+    console.log({ _pageNo, offset, skip, search, userId })
 
     const whereCondition = {
       deleted: false,
-      name: { contains: search + '|%' },
-
+      name: { contains: `%${search}%|%` },
+      favorite: favorite === common.FavoriteStatus.LIKE ? true : undefined,
       inventoryType:
         typeIds.length > 0
           ? {
@@ -99,6 +100,20 @@ export class InventoryService implements OnModuleInit {
       const result = await this.repos.inventory.findUnique({
         where: {
           id,
+        },
+        include: {
+          brandType: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          inventoryType: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       })
 
@@ -212,9 +227,23 @@ export class InventoryService implements OnModuleInit {
     }
   }
 
-  async deleteInventory(id: string): Promise<common.ResponseInventory> {
+  async deleteInventory(
+    id: string,
+    req: ICurrentUser,
+  ): Promise<common.ResponseInventory> {
     const logctx = logContext(InventoryService, this.deleteInventory)
     try {
+      const checkShopId = await this.repos.inventory.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          shopsId: true,
+        },
+      })
+      if (checkShopId.shopsId !== req.shopsId) {
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+      }
       const result = await this.repos.inventory.update({
         where: {
           id,
@@ -233,9 +262,31 @@ export class InventoryService implements OnModuleInit {
       throw new HttpException('Internal Error', 500)
     }
   }
-  async deleteInventoryType(id: string): Promise<common.ResponseInventory> {
+  async deleteInventoryType(
+    id: string,
+    req: ICurrentUser,
+  ): Promise<common.ResponseInventory> {
     const logctx = logContext(InventoryService, this.deleteInventoryType)
     try {
+      const checkShopId = await this.repos.inventoryType.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          shopsId: true,
+        },
+      })
+      if (checkShopId.shopsId !== req.shopsId) {
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+      }
+      const type = await this.repos.inventory.findMany({
+        where: {
+          InventoryTypeId: id,
+        },
+      })
+      if (type.length > 0) {
+        throw new HttpException('BADHAVETYPE', 400)
+      }
       const result = await this.repos.inventoryType.update({
         where: {
           id,
@@ -251,7 +302,7 @@ export class InventoryService implements OnModuleInit {
       return result
     } catch (error) {
       this.loggers.error(error, `[MarchERR] Select Categories error`, logctx)
-      throw new HttpException('Internal Error', 500)
+      throw new HttpException(error.message, error.status)
     }
   }
   async deleteBrandType(
@@ -271,6 +322,14 @@ export class InventoryService implements OnModuleInit {
       if (checkShopId.shopsId !== req.shopsId) {
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
       }
+      const type = await this.repos.inventory.findMany({
+        where: {
+          BrandTypeId: id,
+        },
+      })
+      if (type.length > 0) {
+        throw new HttpException('Bad request', 400)
+      }
       const result = await this.repos.brandType.update({
         where: {
           id,
@@ -286,7 +345,10 @@ export class InventoryService implements OnModuleInit {
       return result
     } catch (error) {
       this.loggers.error(error, `[MarchERR] Select Categories error`, logctx)
-      throw new HttpException('Internal Error', 500)
+      throw new HttpException(
+        get(error, 'message', 'Internal Error'),
+        get(error, 'status', 500),
+      )
     }
   }
 
@@ -295,13 +357,18 @@ export class InventoryService implements OnModuleInit {
     req: ICurrentUser,
   ): Promise<common.ResponseInventory> {
     const logctx = logContext(InventoryService, this.upsertInventory)
-    const { shopsId } = req
+    const { shopsId, userId, userName } = req
     console.log({ shopsId })
     const {
       id,
       name,
       amount,
       price,
+      size,
+      priceMember,
+      sku,
+      reorderLevel,
+      favorite,
       description,
       expiryDate,
       inventoryTypeId,
@@ -373,7 +440,11 @@ export class InventoryService implements OnModuleInit {
       if (id && findDup && id !== findDup.id) {
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
       }
-
+      const width = get(size, 'width', '0')
+      const length = get(size, 'length', '0')
+      const height = get(size, 'height', '0')
+      const weight = get(size, 'weight', '0')
+      const _size = `${width}|${length}|${height}|${weight}`
       const result = await this.repos.inventory.upsert({
         where: {
           id: id || uuidv4(),
@@ -384,12 +455,17 @@ export class InventoryService implements OnModuleInit {
           InventoryTypeId: inventoryTypeId,
           BrandTypeId: brandTypeId,
           price,
+          priceMember,
+          reorderLevel,
+          sku,
+          favorite,
+          size: _size,
           expiryDate,
           shopsId,
           description,
           deleted: false,
-          createdBy,
-          updatedBy: createdBy,
+          createdBy: userName,
+          updatedBy: userName,
         },
         select: {
           id: true,
@@ -398,13 +474,20 @@ export class InventoryService implements OnModuleInit {
           id,
           name: name + '|' + shopsId,
           amount,
-          price,
           InventoryTypeId: inventoryTypeId,
           BrandTypeId: brandTypeId,
+          price,
+          favorite,
+          priceMember,
+          reorderLevel,
+          sku,
+          size: _size,
+          expiryDate,
+          shopsId,
           description,
           deleted: false,
-          createdBy,
-          updatedBy: createdBy,
+          createdBy: userName,
+          updatedBy: userName,
         },
       })
       this.loggers.debug({ result }, logctx)
@@ -415,7 +498,10 @@ export class InventoryService implements OnModuleInit {
     } catch (error) {
       this.loggers.debug({ error }, logctx)
       this.loggers.error(error, `[MarchERR] Create Categoriy error`, logctx)
-      throw new HttpException(error.message, error.status)
+      throw new HttpException(
+        get(error, 'message', 'Internal Error'),
+        get(error, 'status', 500),
+      )
     }
   }
 
@@ -425,7 +511,7 @@ export class InventoryService implements OnModuleInit {
   ): Promise<common.ResponseInventory> {
     const logctx = logContext(InventoryService, this.upsertInventoryType)
     const { id, name, description, createdBy } = input
-    const { shopsId } = req
+    const { shopsId, userId, userName } = req
     try {
       const removeDel = await this.repos.inventoryType.findFirst({
         where: {
@@ -478,8 +564,8 @@ export class InventoryService implements OnModuleInit {
           description,
           shopsId,
           deleted: false,
-          createdBy,
-          updatedBy: createdBy,
+          createdBy: userName,
+          updatedBy: userName,
         },
         select: {
           id: true,
@@ -489,8 +575,7 @@ export class InventoryService implements OnModuleInit {
           name: name + '|' + shopsId,
           description,
           deleted: false,
-          createdBy,
-          updatedBy: createdBy,
+          updatedBy: userName,
         },
       })
       this.loggers.debug({ result }, logctx)
@@ -501,7 +586,10 @@ export class InventoryService implements OnModuleInit {
     } catch (error) {
       this.loggers.debug({ error }, logctx)
       this.loggers.error(error, `[MarchERR] Create Categoriy error`, logctx)
-      throw new HttpException(error.message, error.status)
+      throw new HttpException(
+        get(error, 'message', 'Internal Error'),
+        get(error, 'status', 500),
+      )
     }
   }
 
@@ -511,7 +599,7 @@ export class InventoryService implements OnModuleInit {
   ): Promise<common.ResponseBrand> {
     const logctx = logContext(InventoryService, this.upsertBrandType)
     const { id, name, description, createdBy } = input
-    const { shopsId } = req
+    const { shopsId, userId, userName } = req
     try {
       const removeDel = await this.repos.brandType.findFirst({
         where: {
@@ -565,8 +653,8 @@ export class InventoryService implements OnModuleInit {
           name: name + '|' + shopsId,
           description,
           deleted: false,
-          createdBy,
-          updatedBy: createdBy,
+          createdBy: userName,
+          updatedBy: userName,
         },
         select: {
           id: true,
@@ -576,8 +664,7 @@ export class InventoryService implements OnModuleInit {
           name: name + '|' + shopsId,
           description,
           deleted: false,
-          createdBy,
-          updatedBy: createdBy,
+          updatedBy: userName,
         },
       })
       this.loggers.debug({ result }, logctx)
@@ -588,7 +675,54 @@ export class InventoryService implements OnModuleInit {
     } catch (error) {
       this.loggers.debug({ error }, logctx)
       this.loggers.error(error, `[MarchERR] Create Categoriy error`, logctx)
-      throw new HttpException(error.message, error.status)
+      throw new HttpException(
+        get(error, 'message', 'Internal Error'),
+        get(error, 'status', 500),
+      )
+    }
+  }
+
+  async favoriteInventory(
+    id: string,
+    req: ICurrentUser,
+  ): Promise<common.ResponseBrand> {
+    const logctx = logContext(InventoryService, this.favoriteInventory)
+    try {
+      const checkShopId = await this.repos.inventory.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          shopsId: true,
+          favorite: true,
+        },
+      })
+      if (checkShopId.shopsId !== req.shopsId) {
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+      }
+      const result = await this.repos.inventory.update({
+        where: {
+          id,
+        },
+        data: {
+          favorite: !checkShopId.favorite,
+        },
+        select: {
+          id: true,
+        },
+      })
+      this.loggers.debug({ result }, logctx)
+      return result
+    } catch (error) {
+      this.loggers.error(
+        error,
+        `[MarchERR] Set Favortite Categories error`,
+        logctx,
+      )
+      throw new HttpException(
+        get(error, 'message', 'Internal Error'),
+        get(error, 'status', 500),
+      )
     }
   }
 }

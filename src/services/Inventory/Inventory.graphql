@@ -1,3 +1,8 @@
+enum FavoriteStatus {
+  LIKE
+  DEFAULT
+}
+
 type InventoryType {
   id: String
   name: String
@@ -24,10 +29,15 @@ type Inventory {
   name: String!
   amount: Int!
   sold: Int
+  sku: String
+  size: String
+  priceMember: Int
   price: Int!
+  reorderLevel: Int
   expiryDate: Date
   brandType: BrandType
   inventoryType: InventoryType
+  favorite: Boolean
   description: String
   createdBy: String
   updatedBy: String
@@ -43,16 +53,28 @@ type ResponseBrand {
   id: String
 }
 
+input SizeInventory {
+  weight: Int
+  width: Int
+  length: Int
+  height: Int
+}
+
 input UpsertInventoryInput {
   id: String
   name: String!
-  inventoryTypeId: String
-  brandTypeId: String
-  amount: Int
-  price: Int
+  inventoryTypeId: String!
+  brandTypeId: String!
+  favorite: Boolean
+  amount: Int!
+  sku: String
+  reorderLevel: Int
+  size: SizeInventory
+  price: Int!
+  priceMember: Int
   expiryDate: Date
   description: String
-  createdBy: String!
+  createdBy: String
   updatedBy: String
 }
 
@@ -60,7 +82,7 @@ input UpsertInventoryTypeInput {
   id: String
   name: String!
   description: String
-  createdBy: String!
+  createdBy: String
   updatedBy: String
 }
 
@@ -68,12 +90,13 @@ input UpsertBrandTypeInput {
   id: String
   name: String!
   description: String
-  createdBy: String!
+  createdBy: String
   updatedBy: String
 }
 
 input ParamsInventory {
   search: String
+  favorite: FavoriteStatus
   type: [String]
   brand: [String]
   pageNo: Int
@@ -100,6 +123,11 @@ type ResponseInventories {
   totalRow: Int
 }
 
+type ResponseFavorite {
+  id: String
+}
+
+
 type Mutation {
   upsertInventory(input: UpsertInventoryInput!): ResponseInventory
   deleteInventory(id: String!): ResponseInventory
@@ -107,6 +135,7 @@ type Mutation {
   deleteInventoryType(id: String!): ResponseInventory
   upsertBrandType(input: UpsertBrandTypeInput!): ResponseBrand
   deleteBrandType(id: String!): ResponseBrand
+  favoriteInventory(id: String!): ResponseFavorite
 }
 
 type Query {

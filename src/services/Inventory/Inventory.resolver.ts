@@ -13,7 +13,7 @@ export class InventoryResolver {
   constructor() {}
   @Inject(InventoryService) private inventoryService: InventoryService
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Admin))
+  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
   @Query(() => [common.Inventory], { name: 'getInventories' })
   async getInventories(
     @Args('params') params: common.ParamsInventory,
@@ -25,7 +25,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Admin))
+  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
   @Query(() => [common.Inventory], { name: 'getInventory' })
   async getInventory(
     @Args('id') id: string,
@@ -37,7 +37,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Admin))
+  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
   @Query(() => [common.Inventory], { name: 'getInventoryTypes' })
   async getInventoryTypes(
     @CurrentUser() req: ICurrentUser,
@@ -49,7 +49,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Admin))
+  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
   @Query(() => [common.Inventory], { name: 'getInventoryType' })
   async getInventoryType(
     @Args('id') id: string,
@@ -61,7 +61,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Admin))
+  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
   @Query(() => [common.Inventory], { name: 'getBrandTypes' })
   async getBrandTypes(
     @CurrentUser() req: ICurrentUser,
@@ -73,7 +73,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Admin))
+  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
   @Query(() => [common.Inventory], { name: 'getBrandType' })
   async getBrandType(
     @Args('id') id: string,
@@ -85,7 +85,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Admin))
+  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
   @Mutation(() => String, { name: 'upsertInventory' })
   async upsertInventory(
     @Args('input') input: common.UpsertInventoryInput,
@@ -97,7 +97,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Admin))
+  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
   @Mutation(() => String, { name: 'upsertInventoryType' })
   async upsertInventoryType(
     @Args('input') input: common.UpsertInventoryTypeInput,
@@ -109,7 +109,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Admin))
+  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
   @Mutation(() => String, { name: 'upsertBrandType' })
   async upsertBrandType(
     @Args('input') input: common.UpsertBrandTypeInput,
@@ -121,7 +121,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Admin))
+  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
   @Mutation(() => String, { name: 'deleteBrandType' })
   async deleteBrandType(
     @Args('id') id: string,
@@ -133,6 +133,19 @@ export class InventoryResolver {
     return result
   }
 
+  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
+  @Mutation(() => String, { name: 'favoriteInventory' })
+  async favoriteInventory(
+    @Args('id') id: string,
+    @CurrentUser() req: ICurrentUser,
+  ): Promise<common.ResponseBrand> {
+    const logctx = logContext(InventoryResolver, this.favoriteInventory)
+    this.loggers.debug({ id }, logctx)
+    const result = await this.inventoryService.favoriteInventory(id, req)
+    return result
+  }
+
+  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
   @Mutation(() => String, { name: 'deleteInventory' })
   async deleteInventory(
     @Args('id') id: string,
@@ -140,10 +153,11 @@ export class InventoryResolver {
   ): Promise<common.ResponseInventory> {
     const logctx = logContext(InventoryResolver, this.deleteInventory)
     this.loggers.debug({ id }, logctx)
-    const result = await this.inventoryService.deleteInventory(id)
+    const result = await this.inventoryService.deleteInventory(id, req)
     return result
   }
 
+  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
   @Mutation(() => String, { name: 'deleteInventoryType' })
   async deleteInventoryType(
     @Args('id') id: string,
@@ -151,7 +165,7 @@ export class InventoryResolver {
   ): Promise<common.ResponseInventory> {
     const logctx = logContext(InventoryResolver, this.deleteInventoryType)
     this.loggers.debug({ id }, logctx)
-    const result = await this.inventoryService.deleteInventoryType(id)
+    const result = await this.inventoryService.deleteInventoryType(id, req)
     return result
   }
 }

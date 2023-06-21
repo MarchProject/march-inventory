@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE `Inventory` ADD COLUMN `priceMember` INTEGER NULL DEFAULT 0,
+    ADD COLUMN `reorderLevel` INTEGER NULL,
+    ADD COLUMN `size` VARCHAR(191) NULL,
+    ADD COLUMN `sku` VARCHAR(191) NULL;

@@ -1,11 +1,24 @@
 mutation upsertInventory {
   upsertInventory(
     input: {
-      name: "Purina29"
-      description: "26kg"
+      id: "c84e5b6c-5b40-4cd8-9b19-589db271bbd8"
+      name: "Meo"
+      amount: 1200
+      price: 899
+      sku: "CAT-899-FOOD-KIDS"
+      size: {
+        width: 12
+        # length:12
+        height: 12
+        weight: 20
+      }
+      priceMember: 789
+      reorderLevel: 5
+      description: "20kg"
       createdBy: "System"
       inventoryTypeId: "8918abd5-734f-42ab-98e1-07d2640e255f"
       brandTypeId: "e52bcd56-78fe-4dcb-bb5f-00dab03bb73e"
+      expiryDate: "2023-05-20T00:00:00.000+07:00"
     }
   ) {
     id
@@ -13,29 +26,31 @@ mutation upsertInventory {
 }
 
 query getInventories {
-  getInventories(params: { search: "", type:[], brand:["21ec26db-eed2-4d67-aeb2-703be35219cd","fa737cdb-0acb-4fe2-98c1-ce5b76715307"] pageNo:1 ,limit: 30  }) {
-    inventories{
+  getInventories(
+    params: { search: "32", type: [], brand: [], pageNo: 1, limit: 30 }
+  ) {
+    inventories {
       id
-    name
-    amount
-    sold
-    price
-    inventoryType{
-    name
-  }
-    brandType{
       name
+      amount
+      sold
+      price
+      inventoryType {
+        name
+      }
+      brandType {
+        name
+      }
+      description
+      expiryDate
+      createdBy
+      createdAt
+      updatedBy
+      updatedAt
     }
-    description
-    expiryDate
-    createdBy
-    createdAt
-    updatedBy
-    updatedAt
-    }
-    pageNo,
-    pageLimit,
-    totalPage,
+    pageNo
+    pageLimit
+    totalPage
     totalRow
   }
 }
@@ -53,7 +68,7 @@ query getInventory {
 }
 
 query getInventoryTypes {
-  getInventoryTypes(params: { search: "", offset:0 ,limit: 20  }) {
+  getInventoryTypes(params: { search: "", offset: 0, limit: 20 }) {
     id
     name
     description
@@ -77,7 +92,7 @@ query getInventoryType {
 }
 
 query getBrandTypes {
-  getBrandTypes (params: { search: "K", offset:0 ,limit: 20  }){
+  getBrandTypes(params: { search: "K", offset: 0, limit: 20 }) {
     id
     name
     description
@@ -102,7 +117,12 @@ query getBrandType {
 
 mutation upsertInventoryType {
   upsertInventoryType(
-    input: { id: "", name: "FishFood32", description: "Fish", createdBy: "system" }
+    input: {
+      id: ""
+      name: "FishFood32"
+      description: "Fish"
+      createdBy: "system"
+    }
   ) {
     id
   }
@@ -130,6 +150,11 @@ mutation deleteInventoryType {
 
 mutation deleteInventory {
   deleteInventory(id: "431967cb-bdb0-4b86-8062-b06949eb3e0d") {
+    id
+  }
+}
+mutation favoriteInventory {
+  favoriteInventory(id: "431967cb-bdb0-4b86-8062-b06949eb3e0d") {
     id
   }
 }

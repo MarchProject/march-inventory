@@ -7,8 +7,14 @@
 
 /* tslint:disable */
 /* eslint-disable */
+export enum FavoriteStatus {
+    LIKE = "LIKE",
+    DEFAULT = "DEFAULT"
+}
+
 export class ParamsInventory {
     search?: string;
+    favorite?: FavoriteStatus;
     type?: string[];
     brand?: string[];
     pageNo?: number;
@@ -27,6 +33,13 @@ export class ParamsInventoryType {
     limit?: number;
 }
 
+export class SizeInventory {
+    weight?: number;
+    width?: number;
+    length?: number;
+    height?: number;
+}
+
 export class UpdateStatusInput {
     id: string;
 }
@@ -35,20 +48,25 @@ export class UpsertBrandTypeInput {
     id?: string;
     name: string;
     description?: string;
-    createdBy: string;
+    createdBy?: string;
     updatedBy?: string;
 }
 
 export class UpsertInventoryInput {
     id?: string;
     name: string;
-    inventoryTypeId?: string;
-    brandTypeId?: string;
-    amount?: number;
-    price?: number;
+    inventoryTypeId: string;
+    brandTypeId: string;
+    favorite?: boolean;
+    amount: number;
+    sku?: string;
+    reorderLevel?: number;
+    size?: SizeInventory;
+    price: number;
+    priceMember?: number;
     expiryDate?: Date;
     description?: string;
-    createdBy: string;
+    createdBy?: string;
     updatedBy?: string;
 }
 
@@ -56,7 +74,7 @@ export class UpsertInventoryTypeInput {
     id?: string;
     name: string;
     description?: string;
-    createdBy: string;
+    createdBy?: string;
     updatedBy?: string;
 }
 
@@ -76,10 +94,15 @@ export class Inventory {
     name: string;
     amount: number;
     sold?: number;
+    sku?: string;
+    size?: string;
+    priceMember?: number;
     price: number;
+    reorderLevel?: number;
     expiryDate?: Date;
     brandType?: BrandType;
     inventoryType?: InventoryType;
+    favorite?: boolean;
     description?: string;
     createdBy?: string;
     updatedBy?: string;
@@ -109,6 +132,8 @@ export abstract class IMutation {
     abstract upsertBrandType(input: UpsertBrandTypeInput): ResponseBrand | Promise<ResponseBrand>;
 
     abstract deleteBrandType(id: string): ResponseBrand | Promise<ResponseBrand>;
+
+    abstract favoriteInventory(id: string): ResponseFavorite | Promise<ResponseFavorite>;
 }
 
 export abstract class IQuery {
@@ -128,6 +153,10 @@ export abstract class IQuery {
 }
 
 export class ResponseBrand {
+    id?: string;
+}
+
+export class ResponseFavorite {
     id?: string;
 }
 
