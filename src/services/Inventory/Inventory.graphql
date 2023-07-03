@@ -3,6 +3,11 @@ enum FavoriteStatus {
   DEFAULT
 }
 
+type InventoryName {
+  id: String
+  name: String
+}
+
 type InventoryType {
   id: String
   name: String
@@ -127,7 +132,6 @@ type ResponseFavorite {
   id: String
 }
 
-
 type Mutation {
   upsertInventory(input: UpsertInventoryInput!): ResponseInventory
   deleteInventory(id: String!): ResponseInventory
@@ -139,6 +143,7 @@ type Mutation {
 }
 
 type Query {
+  getInventoryNames: [InventoryName]
   getInventory(id: String): Inventory
   getInventories(params: ParamsInventory): ResponseInventories
   getInventoryType(id: String): InventoryType

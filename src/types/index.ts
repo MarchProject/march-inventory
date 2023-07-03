@@ -110,6 +110,11 @@ export class Inventory {
     createdAt?: Date;
 }
 
+export class InventoryName {
+    id?: string;
+    name?: string;
+}
+
 export class InventoryType {
     id?: string;
     name?: string;
@@ -138,6 +143,8 @@ export abstract class IMutation {
 
 export abstract class IQuery {
     abstract status(): string | Promise<string>;
+
+    abstract getInventoryNames(): InventoryName[] | Promise<InventoryName[]>;
 
     abstract getInventory(id?: string): Inventory | Promise<Inventory>;
 

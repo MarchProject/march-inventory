@@ -14,6 +14,16 @@ export class InventoryResolver {
   @Inject(InventoryService) private inventoryService: InventoryService
 
   @UseGuards(new UserAuthGuard(uamAuthRole.Any))
+  @Query(() => [common.Inventory], { name: 'getInventoryNames' })
+  async getInventoryNames(
+    @CurrentUser() req: ICurrentUser,
+  ): Promise<common.InventoryName[]> {
+    const logctx = logContext(InventoryResolver, this.getInventoryNames)
+    const result = await this.inventoryService.getInventoryNames(req)
+    // this.loggers.debug({ result }, logctx)
+    return result
+  }
+  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
   @Query(() => [common.Inventory], { name: 'getInventories' })
   async getInventories(
     @Args('params') params: common.ParamsInventory,

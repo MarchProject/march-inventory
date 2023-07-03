@@ -58,5 +58,18 @@ model Inventory {
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
   favorite Boolean @default(false)
+  csvId String?
+  InventoryFileId String?    @db.VarChar(40)
+  inventoryFile   InventoryFile? @relation("Inventory_InventoryFile", fields: [InventoryFileId], references: [id])
   @@fulltext([name])
+}
+
+model InventoryFile {
+  id String @id @default(uuid())
+  name String @unique
+  createdBy String
+  updatedBy String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  inventory Inventory[] @relation("Inventory_InventoryFile")
 }

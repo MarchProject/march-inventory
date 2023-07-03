@@ -20,6 +20,25 @@ export class InventoryService implements OnModuleInit {
   constructor(private readonly repos: PrismaService) {}
   onModuleInit() {}
 
+  async getInventoryNames(req: ICurrentUser): Promise<common.InventoryName[]> {
+    const logctx = logContext(InventoryService, this.getInventories)
+    const { shopsId, userId } = req
+    try {
+      const result = await this.repos.inventory.findMany({
+        where: { shopsId: shopsId },
+        select: {
+          id: true,
+          name: true,
+        },
+      })
+
+      return result
+    } catch (error) {
+      this.loggers.error(error, `[MarchERR] getInventoryNames error`, logctx)
+      throw new HttpException('Internal Error', 500)
+    }
+  }
+
   async getInventories(
     params: common.ParamsInventory,
     req: ICurrentUser,
@@ -89,7 +108,7 @@ export class InventoryService implements OnModuleInit {
         totalRow,
       }
     } catch (error) {
-      this.loggers.error(error, `[MarchERR] Select Categories error`, logctx)
+      this.loggers.error(error, `[MarchERR] getInventories error`, logctx)
       throw new HttpException('Internal Error', 500)
     }
   }
@@ -124,7 +143,7 @@ export class InventoryService implements OnModuleInit {
       return result
     } catch (error) {
       console.log({ error: error.status })
-      this.loggers.error(error, `[MarchERR] Select Categories error`, logctx)
+      this.loggers.error(error, `[MarchERR] getInventories error`, logctx)
       throw new HttpException('Internal Error', 500)
     }
   }
@@ -152,7 +171,7 @@ export class InventoryService implements OnModuleInit {
 
       return result
     } catch (error) {
-      this.loggers.error(error, `[MarchERR] Select Categories error`, logctx)
+      this.loggers.error(error, `[MarchERR] getInventoryTypes error`, logctx)
       throw new HttpException('Internal Error', 500)
     }
   }
@@ -173,7 +192,7 @@ export class InventoryService implements OnModuleInit {
       }
       return result
     } catch (error) {
-      this.loggers.error(error, `[MarchERR] Select Categories error`, logctx)
+      this.loggers.error(error, `[MarchERR] getInventoryType error`, logctx)
       throw new HttpException('Internal Error', 500)
     }
   }
@@ -200,7 +219,7 @@ export class InventoryService implements OnModuleInit {
       this.loggers.debug({ result }, logctx)
       return result
     } catch (error) {
-      this.loggers.error(error, `[MarchERR] Select Brand error`, logctx)
+      this.loggers.error(error, `[MarchERR] getBrandTypes error`, logctx)
       throw new HttpException('Internal Error', 500)
     }
   }
@@ -222,7 +241,7 @@ export class InventoryService implements OnModuleInit {
       this.loggers.debug({ result }, logctx)
       return result
     } catch (error) {
-      this.loggers.error(error, `[MarchERR] Select Brand error`, logctx)
+      this.loggers.error(error, `[MarchERR] getBrandType error`, logctx)
       throw new HttpException('Internal Error', 500)
     }
   }
@@ -258,7 +277,7 @@ export class InventoryService implements OnModuleInit {
       this.loggers.debug({ result }, logctx)
       return result
     } catch (error) {
-      this.loggers.error(error, `[MarchERR] Select Categories error`, logctx)
+      this.loggers.error(error, `[MarchERR] deleteInventory error`, logctx)
       throw new HttpException('Internal Error', 500)
     }
   }
@@ -301,7 +320,7 @@ export class InventoryService implements OnModuleInit {
       this.loggers.debug({ result }, logctx)
       return result
     } catch (error) {
-      this.loggers.error(error, `[MarchERR] Select Categories error`, logctx)
+      this.loggers.error(error, `[MarchERR] deleteInventoryType error`, logctx)
       throw new HttpException(error.message, error.status)
     }
   }
@@ -344,7 +363,7 @@ export class InventoryService implements OnModuleInit {
       this.loggers.debug({ result }, logctx)
       return result
     } catch (error) {
-      this.loggers.error(error, `[MarchERR] Select Categories error`, logctx)
+      this.loggers.error(error, `[MarchERR] deleteBrandType error`, logctx)
       throw new HttpException(
         get(error, 'message', 'Internal Error'),
         get(error, 'status', 500),
@@ -497,7 +516,7 @@ export class InventoryService implements OnModuleInit {
       }
     } catch (error) {
       this.loggers.debug({ error }, logctx)
-      this.loggers.error(error, `[MarchERR] Create Categoriy error`, logctx)
+      this.loggers.error(error, `[MarchERR] upsertInventory error`, logctx)
       throw new HttpException(
         get(error, 'message', 'Internal Error'),
         get(error, 'status', 500),
@@ -585,7 +604,7 @@ export class InventoryService implements OnModuleInit {
       }
     } catch (error) {
       this.loggers.debug({ error }, logctx)
-      this.loggers.error(error, `[MarchERR] Create Categoriy error`, logctx)
+      this.loggers.error(error, `[MarchERR] upsertInventoryType error`, logctx)
       throw new HttpException(
         get(error, 'message', 'Internal Error'),
         get(error, 'status', 500),
@@ -674,7 +693,7 @@ export class InventoryService implements OnModuleInit {
       }
     } catch (error) {
       this.loggers.debug({ error }, logctx)
-      this.loggers.error(error, `[MarchERR] Create Categoriy error`, logctx)
+      this.loggers.error(error, `[MarchERR] upsertBrandType error`, logctx)
       throw new HttpException(
         get(error, 'message', 'Internal Error'),
         get(error, 'status', 500),
@@ -714,11 +733,7 @@ export class InventoryService implements OnModuleInit {
       this.loggers.debug({ result }, logctx)
       return result
     } catch (error) {
-      this.loggers.error(
-        error,
-        `[MarchERR] Set Favortite Categories error`,
-        logctx,
-      )
+      this.loggers.error(error, `[MarchERR] favoriteInventory error`, logctx)
       throw new HttpException(
         get(error, 'message', 'Internal Error'),
         get(error, 'status', 500),
