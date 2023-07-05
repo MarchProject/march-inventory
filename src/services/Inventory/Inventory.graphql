@@ -132,7 +132,19 @@ type ResponseFavorite {
   id: String
 }
 
+input UploadInventoryInput {
+  uploadDatas: [UpsertInventoryInput]
+  fileName: String
+}
+
+type UploadInventoryResponse {
+  id: String
+  success: Boolean
+  reason: String
+}
+
 type Mutation {
+  uploadInventory(input: UploadInventoryInput!): UploadInventoryResponse
   upsertInventory(input: UpsertInventoryInput!): ResponseInventory
   deleteInventory(id: String!): ResponseInventory
   upsertInventoryType(input: UpsertInventoryTypeInput!): ResponseInventory

@@ -178,4 +178,16 @@ export class InventoryResolver {
     const result = await this.inventoryService.deleteInventoryType(id, req)
     return result
   }
+
+  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
+  @Mutation(() => String, { name: 'uploadInventory' })
+  async uploadInventory(
+    @Args('input') input: common.UploadInventoryInput,
+    @CurrentUser() req: ICurrentUser,
+  ): Promise<common.UploadInventoryResponse> {
+    const logctx = logContext(InventoryResolver, this.uploadInventory)
+    this.loggers.debug({ input }, logctx)
+    const result = await this.inventoryService.uploadInventory(input, req)
+    return result
+  }
 }

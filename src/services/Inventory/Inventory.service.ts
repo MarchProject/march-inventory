@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { ICurrentUser } from 'src/common/helpers/user'
 import { mapFunction } from '@march/core'
 import { get } from 'lodash'
+import { tranfromUploadCsv } from './inventory.dto'
 
 @Injectable()
 export class InventoryService implements OnModuleInit {
@@ -732,6 +733,89 @@ export class InventoryService implements OnModuleInit {
       })
       this.loggers.debug({ result }, logctx)
       return result
+    } catch (error) {
+      this.loggers.error(error, `[MarchERR] favoriteInventory error`, logctx)
+      throw new HttpException(
+        get(error, 'message', 'Internal Error'),
+        get(error, 'status', 500),
+      )
+    }
+  }
+
+  async uploadInventory(
+    input: common.UploadInventoryInput,
+    req: ICurrentUser,
+  ): Promise<common.UploadInventoryResponse> {
+    const logctx = logContext(InventoryService, this.uploadInventory)
+    const { uploadDatas, fileName } = input
+    const { shopsId, userName } = req
+    try {
+      const checkNames = await this.repos.inventoryFile.findFirst({
+        where: {
+          name: fileName + '|' + shopsId,
+          shopsId: shopsId,
+        },
+      })
+      if (checkNames) {
+        return {
+          id: '',
+          success: false,
+          reason: 'Duplicated Filename. Upload again.',
+        }
+      }
+      const createFile = await this.repos.inventoryFile.create({
+        data: {
+          name: fileName + '|' + shopsId,
+          shopsId,
+          createdBy: userName,
+          updatedBy: userName,
+        },
+        select: {
+          id: true,
+        },
+      })
+      if (!createFile) {
+        throw new HttpException(
+          'Internal Error',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        )
+      }
+      const datasTranFrom = tranfromUploadCsv(
+        uploadDatas,
+        shopsId,
+        userName,
+        createFile.id,
+      )
+      try {
+        const uploadFiles = await this.repos.inventory.createMany({
+          data: datasTranFrom,
+          skipDuplicates: true,
+        })
+        return {
+          id: uploadFiles.count !== datasTranFrom.length ? '' : createFile.id,
+          success: uploadFiles.count !== datasTranFrom.length ? false : true,
+          reason:
+            uploadFiles.count !== datasTranFrom.length
+              ? 'maybe some item lost. Please download result csv to check.'
+              : '',
+        }
+      } catch (error) {
+        await this.repos.inventory.deleteMany({
+          where: {
+            InventoryFileId: createFile.id,
+          },
+        })
+        await this.repos.inventoryFile.delete({
+          where: {
+            id: createFile.id,
+          },
+        })
+        return {
+          id: createFile.id,
+          success: false,
+          reason: 'Upload Failed. Upload again',
+        }
+      }
     } catch (error) {
       this.loggers.error(error, `[MarchERR] favoriteInventory error`, logctx)
       throw new HttpException(

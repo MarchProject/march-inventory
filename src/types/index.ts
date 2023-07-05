@@ -44,6 +44,11 @@ export class UpdateStatusInput {
     id: string;
 }
 
+export class UploadInventoryInput {
+    uploadDatas?: UpsertInventoryInput[];
+    fileName?: string;
+}
+
 export class UpsertBrandTypeInput {
     id?: string;
     name: string;
@@ -126,6 +131,8 @@ export class InventoryType {
 }
 
 export abstract class IMutation {
+    abstract uploadInventory(input: UploadInventoryInput): UploadInventoryResponse | Promise<UploadInventoryResponse>;
+
     abstract upsertInventory(input: UpsertInventoryInput): ResponseInventory | Promise<ResponseInventory>;
 
     abstract deleteInventory(id: string): ResponseInventory | Promise<ResponseInventory>;
@@ -177,6 +184,12 @@ export class ResponseInventories {
 
 export class ResponseInventory {
     id?: string;
+}
+
+export class UploadInventoryResponse {
+    id?: string;
+    success?: boolean;
+    reason?: string;
 }
 
 export type SortOrder = any;

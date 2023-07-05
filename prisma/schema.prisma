@@ -9,6 +9,11 @@ generator client {
   previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
+enum StatusFile {
+  PASS
+  FAIL
+}
+
 model BrandType {
   id String @id @default(uuid())
   name String @unique
@@ -67,9 +72,12 @@ model Inventory {
 model InventoryFile {
   id String @id @default(uuid())
   name String @unique
+  shopsId String? @db.VarChar(40)
+  status StatusFile @default(PASS)
   createdBy String
   updatedBy String
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
   inventory Inventory[] @relation("Inventory_InventoryFile")
+  
 }
