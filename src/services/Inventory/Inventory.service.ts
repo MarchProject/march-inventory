@@ -11,7 +11,7 @@ import * as common from 'src/types'
 import { v4 as uuidv4 } from 'uuid'
 import { ICurrentUser } from 'src/common/helpers/user'
 import { mapFunction } from '@march/core'
-import { get } from 'lodash'
+import { get, isNil } from 'lodash'
 import { tranfromUploadCsv } from './inventory.dto'
 
 @Injectable()
@@ -52,7 +52,7 @@ export class InventoryService implements OnModuleInit {
     const skip = offset ?? 0
     const brandIds = mapFunction(brand, 'id')
     const typeIds = mapFunction(type, 'id')
-    console.log({ _pageNo, offset, skip, search, userId })
+    console.log({ _pageNo, offset, skip, search, userId, testx: shopsId })
 
     const whereCondition = {
       deleted: false,
@@ -71,6 +71,9 @@ export class InventoryService implements OnModuleInit {
             }
           : {},
       shopsId,
+    }
+    if (isNil(shopsId) || isNil(req.userName)) {
+      throw new HttpException('Unauthorized ShopId', HttpStatus.UNAUTHORIZED)
     }
     try {
       const result = await this.repos.inventory.findMany({
@@ -116,6 +119,7 @@ export class InventoryService implements OnModuleInit {
 
   async getInventory(id: string, req: ICurrentUser): Promise<common.Inventory> {
     const logctx = logContext(InventoryService, this.getInventory)
+    console.log({ id, reqe: req })
     try {
       const result = await this.repos.inventory.findUnique({
         where: {
@@ -159,7 +163,7 @@ export class InventoryService implements OnModuleInit {
       const result = await this.repos.inventoryType.findMany({
         where: {
           name: {
-            contains: search.split('|')[0],
+            contains: `%${search}%|%`,
           },
           deleted: false,
           shopsId: req.shopsId,
@@ -209,7 +213,7 @@ export class InventoryService implements OnModuleInit {
       const result = await this.repos.brandType.findMany({
         where: {
           name: {
-            contains: search.split('|')[0],
+            contains: `%${search}%|%`,
           },
           deleted: false,
           shopsId: req.shopsId,
@@ -218,6 +222,7 @@ export class InventoryService implements OnModuleInit {
         take: limit,
       })
       this.loggers.debug({ result }, logctx)
+
       return result
     } catch (error) {
       this.loggers.error(error, `[MarchERR] getBrandTypes error`, logctx)
@@ -348,7 +353,7 @@ export class InventoryService implements OnModuleInit {
         },
       })
       if (type.length > 0) {
-        throw new HttpException('Bad request', 400)
+        throw new HttpException('BADHAVETYPE  ', 400)
       }
       const result = await this.repos.brandType.update({
         where: {
@@ -532,6 +537,9 @@ export class InventoryService implements OnModuleInit {
     const logctx = logContext(InventoryService, this.upsertInventoryType)
     const { id, name, description, createdBy } = input
     const { shopsId, userId, userName } = req
+    if (!name) {
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+    }
     try {
       const removeDel = await this.repos.inventoryType.findFirst({
         where: {
@@ -620,6 +628,9 @@ export class InventoryService implements OnModuleInit {
     const logctx = logContext(InventoryService, this.upsertBrandType)
     const { id, name, description, createdBy } = input
     const { shopsId, userId, userName } = req
+    if (!name) {
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+    }
     try {
       const removeDel = await this.repos.brandType.findFirst({
         where: {
@@ -717,6 +728,7 @@ export class InventoryService implements OnModuleInit {
           favorite: true,
         },
       })
+      this.loggers.debug({ checkShopId, req }, logctx)
       if (checkShopId.shopsId !== req.shopsId) {
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
       }
@@ -749,6 +761,7 @@ export class InventoryService implements OnModuleInit {
     const logctx = logContext(InventoryService, this.uploadInventory)
     const { uploadDatas, fileName } = input
     const { shopsId, userName } = req
+    this.loggers.debug({ input, req }, logctx)
     try {
       const checkNames = await this.repos.inventoryFile.findFirst({
         where: {
@@ -756,6 +769,7 @@ export class InventoryService implements OnModuleInit {
           shopsId: shopsId,
         },
       })
+      this.loggers.debug({ checkNames }, logctx)
       if (checkNames) {
         return {
           id: '',
@@ -774,6 +788,7 @@ export class InventoryService implements OnModuleInit {
           id: true,
         },
       })
+      this.loggers.debug({ createFile }, logctx)
       if (!createFile) {
         throw new HttpException(
           'Internal Error',
@@ -786,20 +801,40 @@ export class InventoryService implements OnModuleInit {
         userName,
         createFile.id,
       )
+      this.loggers.debug({ datasTranFrom }, logctx)
       try {
         const uploadFiles = await this.repos.inventory.createMany({
           data: datasTranFrom,
           skipDuplicates: true,
         })
+        this.loggers.debug({ uploadFiles }, logctx)
+
+        if (uploadFiles.count !== datasTranFrom.length) {
+          await this.repos.inventory.deleteMany({
+            where: {
+              InventoryFileId: createFile.id,
+            },
+          })
+          await this.repos.inventoryFile.delete({
+            where: {
+              id: createFile.id,
+            },
+          })
+          return {
+            id: '',
+            success: false,
+            reason:
+              'maybe some item lost or duplicated. Please upload csv again.',
+          }
+        }
         return {
-          id: uploadFiles.count !== datasTranFrom.length ? '' : createFile.id,
-          success: uploadFiles.count !== datasTranFrom.length ? false : true,
-          reason:
-            uploadFiles.count !== datasTranFrom.length
-              ? 'maybe some item lost. Please download result csv to check.'
-              : '',
+          id: createFile.id,
+          success: true,
+          reason: '',
         }
       } catch (error) {
+        this.loggers.error(error, 'uploadInventory', logctx)
+
         await this.repos.inventory.deleteMany({
           where: {
             InventoryFileId: createFile.id,
@@ -817,7 +852,158 @@ export class InventoryService implements OnModuleInit {
         }
       }
     } catch (error) {
-      this.loggers.error(error, `[MarchERR] favoriteInventory error`, logctx)
+      this.loggers.error(error, `[MarchERR] uploadInventory error`, logctx)
+      throw new HttpException(
+        get(error, 'message', 'Internal Error'),
+        get(error, 'status', 500),
+      )
+    }
+  }
+
+  async getInventoryAllDeleted(
+    req: ICurrentUser,
+  ): Promise<common.ResponseDeletedInventory> {
+    const logctx = logContext(InventoryService, this.uploadInventory)
+    this.loggers.debug({ req }, logctx)
+    const { shopsId } = req
+    try {
+      const inventoryDeleted = await this.repos.inventory.findMany({
+        where: {
+          shopsId: shopsId,
+          deleted: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          updatedAt: true,
+          createdAt: true,
+          createdBy: true,
+          updatedBy: true,
+        },
+      })
+      this.loggers.debug({ inventoryDeleted }, logctx)
+      const typeDeleted = await this.repos.inventoryType.findMany({
+        where: {
+          shopsId: shopsId,
+          deleted: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          updatedAt: true,
+          updatedBy: true,
+          createdAt: true,
+          createdBy: true,
+        },
+      })
+      this.loggers.debug({ typeDeleted }, logctx)
+      const brandDeleted = await this.repos.brandType.findMany({
+        where: {
+          shopsId: shopsId,
+          deleted: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          updatedAt: true,
+          updatedBy: true,
+          createdAt: true,
+          createdBy: true,
+        },
+      })
+      this.loggers.debug({ brandDeleted }, logctx)
+      return {
+        inventory: inventoryDeleted,
+        type: typeDeleted,
+        brand: brandDeleted,
+      }
+    } catch (error) {
+      this.loggers.error(
+        error,
+        `[MarchERR] getInventoryAllDeleted error`,
+        logctx,
+      )
+      throw new HttpException(
+        get(error, 'message', 'Internal Error'),
+        get(error, 'status', 500),
+      )
+    }
+  }
+
+  async recoveryHardDeleted(
+    input: common.RecoveryHardDeletedInput,
+    req: ICurrentUser,
+  ): Promise<common.RecoveryHardDeleted> {
+    const logctx = logContext(InventoryService, this.recoveryHardDeleted)
+    this.loggers.debug({ req, input }, logctx)
+
+    const { shopsId, userName } = req
+    const { id, mode, type } = input
+
+    if (!id) {
+      throw new HttpException(
+        'Bad Request id is required',
+        HttpStatus.BAD_REQUEST,
+      )
+    }
+
+    const checkShopId = await this.repos[type.toString()].findUnique({
+      where: {
+        id,
+      },
+      select: {
+        shopsId: true,
+        deleted: true,
+      },
+    })
+
+    try {
+      if (mode === common.DeletedMode.DELETE) {
+        if (checkShopId.shopsId !== shopsId || checkShopId.deleted === true) {
+          throw new HttpException(
+            'Bad Request id is required',
+            HttpStatus.BAD_REQUEST,
+          )
+        }
+        const deleted = await this.repos[type.toString()].delete({
+          where: {
+            id: id,
+          },
+          select: {
+            id: true,
+          },
+        })
+        return {
+          id: deleted?.id,
+          type: type,
+        }
+      } else if (mode === common.DeletedMode.RECOVERY) {
+        if (checkShopId.shopsId !== shopsId || checkShopId.deleted === false) {
+          throw new HttpException(
+            'Bad Request id is required',
+            HttpStatus.BAD_REQUEST,
+          )
+        }
+
+        const deleted = await this.repos[type.toString()].update({
+          where: {
+            id: id,
+          },
+          data: {
+            deleted: false,
+            updatedBy: userName,
+          },
+          select: {
+            id: true,
+          },
+        })
+        return {
+          id: deleted?.id,
+          type: type,
+        }
+      }
+    } catch (error) {
+      this.loggers.error(error, `[MarchERR] recoveryHardDeleted error`, logctx)
       throw new HttpException(
         get(error, 'message', 'Internal Error'),
         get(error, 'status', 500),

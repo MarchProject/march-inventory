@@ -190,4 +190,29 @@ export class InventoryResolver {
     const result = await this.inventoryService.uploadInventory(input, req)
     return result
   }
+
+  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
+  @Mutation(() => String, { name: 'recoveryHardDeleted' })
+  async recoveryHardDeleted(
+    @Args('input') input: common.RecoveryHardDeletedInput,
+    @CurrentUser() req: ICurrentUser,
+  ): Promise<common.RecoveryHardDeleted> {
+    const logctx = logContext(InventoryResolver, this.recoveryHardDeleted)
+    this.loggers.debug({ input }, logctx)
+    const result = await this.inventoryService.recoveryHardDeleted(input, req)
+    return result
+  }
+
+  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
+  @Query(() => common.ResponseDeletedInventory, {
+    name: 'getInventoryAllDeleted',
+  })
+  async getInventoryAllDeleted(
+    @CurrentUser() req: ICurrentUser,
+  ): Promise<common.ResponseDeletedInventory> {
+    const logctx = logContext(InventoryResolver, this.getInventoryAllDeleted)
+    this.loggers.debug({ req }, logctx)
+    const result = await this.inventoryService.getInventoryAllDeleted(req)
+    return result
+  }
 }

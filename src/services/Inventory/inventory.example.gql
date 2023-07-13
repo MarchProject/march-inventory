@@ -158,3 +158,18 @@ mutation favoriteInventory {
     id
   }
 }
+
+query getInventoryNames {
+  getInventoryNames {
+    id
+    name
+  }
+}
+query getInventoryAllDeleted {
+  getInventoryAllDeleted {
+    inventory {
+      id
+      name
+    }
+  }
+}

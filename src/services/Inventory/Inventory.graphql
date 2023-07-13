@@ -3,6 +3,17 @@ enum FavoriteStatus {
   DEFAULT
 }
 
+enum DeletedType {
+  inventory
+  inventoryType
+  brandType
+}
+
+enum DeletedMode {
+  RECOVERY
+  DELETE
+}
+
 type InventoryName {
   id: String
   name: String
@@ -143,6 +154,61 @@ type UploadInventoryResponse {
   reason: String
 }
 
+type DeletedInventory {
+  id: String
+  name: String
+  createdBy: String
+  updatedBy: String
+  updatedAt: Date
+  createdAt: Date
+}
+
+type ResponseDeletedInventory {
+  inventory: [DeletedInventory]
+  brand: [DeletedInventory]
+  type: [DeletedInventory]
+}
+
+input RecoveryHardDeletedInput {
+  id: String!
+  type: DeletedType!
+  mode: DeletedMode!
+}
+
+type RecoveryHardDeleted {
+  id: String
+  type: DeletedType
+}
+
+type ResponseFileUploadNames {
+  id: String
+  name: String
+}
+
+type DataUploadFile {
+  id: String
+  name: String
+  type: String
+  brand: String
+  description: String
+  expiryDate: String
+  amount: String
+  sku: String
+  reorderLevel: String
+  price: String
+  priceMember: String
+  favorite: String
+  weight: String
+  width: String
+  height: String
+  length: String
+}
+
+type ResponseGetUploadFile {
+  fileName: String
+  data: [DataUploadFile]
+}
+
 type Mutation {
   uploadInventory(input: UploadInventoryInput!): UploadInventoryResponse
   upsertInventory(input: UpsertInventoryInput!): ResponseInventory
@@ -152,6 +218,8 @@ type Mutation {
   upsertBrandType(input: UpsertBrandTypeInput!): ResponseBrand
   deleteBrandType(id: String!): ResponseBrand
   favoriteInventory(id: String!): ResponseFavorite
+  recoveryHardDeleted(input: RecoveryHardDeletedInput!): RecoveryHardDeleted
+  # fileUpload(id: String!): ResponseGetUploadFile
 }
 
 type Query {
@@ -162,4 +230,6 @@ type Query {
   getInventoryTypes(params: ParamsInventoryType): [InventoryType]
   getBrandType(id: String): BrandType
   getBrandTypes(params: ParamsInventoryBrand): [BrandType]
+  getInventoryAllDeleted: ResponseDeletedInventory
+  # getFileUploadNames: [ResponseFileUploadNames]
 }

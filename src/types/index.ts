@@ -7,6 +7,17 @@
 
 /* tslint:disable */
 /* eslint-disable */
+export enum DeletedMode {
+    RECOVERY = "RECOVERY",
+    DELETE = "DELETE"
+}
+
+export enum DeletedType {
+    inventory = "inventory",
+    inventoryType = "inventoryType",
+    brandType = "brandType"
+}
+
 export enum FavoriteStatus {
     LIKE = "LIKE",
     DEFAULT = "DEFAULT"
@@ -31,6 +42,12 @@ export class ParamsInventoryType {
     search?: string;
     offset?: number;
     limit?: number;
+}
+
+export class RecoveryHardDeletedInput {
+    id: string;
+    type: DeletedType;
+    mode: DeletedMode;
 }
 
 export class SizeInventory {
@@ -93,6 +110,34 @@ export class BrandType {
     createdAt?: Date;
 }
 
+export class DataUploadFile {
+    id?: string;
+    name?: string;
+    type?: string;
+    brand?: string;
+    description?: string;
+    expiryDate?: string;
+    amount?: string;
+    sku?: string;
+    reorderLevel?: string;
+    price?: string;
+    priceMember?: string;
+    favorite?: string;
+    weight?: string;
+    width?: string;
+    height?: string;
+    length?: string;
+}
+
+export class DeletedInventory {
+    id?: string;
+    name?: string;
+    createdBy?: string;
+    updatedBy?: string;
+    updatedAt?: Date;
+    createdAt?: Date;
+}
+
 export class Inventory {
     id?: string;
     inventoryTypeId?: string;
@@ -146,6 +191,10 @@ export abstract class IMutation {
     abstract deleteBrandType(id: string): ResponseBrand | Promise<ResponseBrand>;
 
     abstract favoriteInventory(id: string): ResponseFavorite | Promise<ResponseFavorite>;
+
+    abstract recoveryHardDeleted(input: RecoveryHardDeletedInput): RecoveryHardDeleted | Promise<RecoveryHardDeleted>;
+
+    abstract fileUpload(id: string): ResponseGetUploadFile | Promise<ResponseGetUploadFile>;
 }
 
 export abstract class IQuery {
@@ -164,14 +213,39 @@ export abstract class IQuery {
     abstract getBrandType(id?: string): BrandType | Promise<BrandType>;
 
     abstract getBrandTypes(params?: ParamsInventoryBrand): BrandType[] | Promise<BrandType[]>;
+
+    abstract getInventoryAllDeleted(): ResponseDeletedInventory | Promise<ResponseDeletedInventory>;
+
+    abstract getFileUploadNames(): ResponseFileUploadNames[] | Promise<ResponseFileUploadNames[]>;
+}
+
+export class RecoveryHardDeleted {
+    id?: string;
+    type?: DeletedType;
 }
 
 export class ResponseBrand {
     id?: string;
 }
 
+export class ResponseDeletedInventory {
+    inventory?: DeletedInventory[];
+    brand?: DeletedInventory[];
+    type?: DeletedInventory[];
+}
+
 export class ResponseFavorite {
     id?: string;
+}
+
+export class ResponseFileUploadNames {
+    id?: string;
+    name?: string;
+}
+
+export class ResponseGetUploadFile {
+    fileName?: string;
+    data?: DataUploadFile[];
 }
 
 export class ResponseInventories {
