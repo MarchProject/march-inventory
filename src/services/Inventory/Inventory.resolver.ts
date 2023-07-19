@@ -20,9 +20,10 @@ export class InventoryResolver {
   ): Promise<common.InventoryName[]> {
     const logctx = logContext(InventoryResolver, this.getInventoryNames)
     const result = await this.inventoryService.getInventoryNames(req)
-    // this.loggers.debug({ result }, logctx)
+    this.loggers.debug({ result }, logctx)
     return result
   }
+
   @UseGuards(new UserAuthGuard(uamAuthRole.Any))
   @Query(() => [common.Inventory], { name: 'getInventories' })
   async getInventories(
@@ -31,7 +32,7 @@ export class InventoryResolver {
   ): Promise<common.ResponseInventories> {
     const logctx = logContext(InventoryResolver, this.getInventories)
     const result = await this.inventoryService.getInventories(params, req)
-    // this.loggers.debug({ result }, logctx)
+    this.loggers.debug({ result }, logctx)
     return result
   }
 
@@ -41,7 +42,7 @@ export class InventoryResolver {
     @Args('id') id: string,
     @CurrentUser() req: ICurrentUser,
   ): Promise<common.Inventory> {
-    const logctx = logContext(InventoryResolver, this.getInventories)
+    const logctx = logContext(InventoryResolver, this.getInventory)
     const result = await this.inventoryService.getInventory(id, req)
     this.loggers.debug({ result }, logctx)
     return result
@@ -53,7 +54,7 @@ export class InventoryResolver {
     @CurrentUser() req: ICurrentUser,
     @Args('params') params: common.ParamsInventoryType,
   ): Promise<common.InventoryType[]> {
-    const logctx = logContext(InventoryResolver, this.getInventories)
+    const logctx = logContext(InventoryResolver, this.getInventoryTypes)
     const result = await this.inventoryService.getInventoryTypes(req, params)
     this.loggers.debug({ result }, logctx)
     return result
@@ -65,7 +66,7 @@ export class InventoryResolver {
     @Args('id') id: string,
     @CurrentUser() req: ICurrentUser,
   ): Promise<common.InventoryType> {
-    const logctx = logContext(InventoryResolver, this.getInventories)
+    const logctx = logContext(InventoryResolver, this.getInventoryType)
     const result = await this.inventoryService.getInventoryType(id, req)
     this.loggers.debug({ result }, logctx)
     return result

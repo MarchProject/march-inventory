@@ -22,8 +22,11 @@ export class InventoryService implements OnModuleInit {
   onModuleInit() {}
 
   async getInventoryNames(req: ICurrentUser): Promise<common.InventoryName[]> {
-    const logctx = logContext(InventoryService, this.getInventories)
+    const logctx = logContext(InventoryService, this.getInventoryNames)
     const { shopsId, userId } = req
+
+    this.loggers.debug({ shopsId, userId }, logctx)
+
     try {
       const result = await this.repos.inventory.findMany({
         where: { shopsId: shopsId },
@@ -32,6 +35,7 @@ export class InventoryService implements OnModuleInit {
           name: true,
         },
       })
+      this.loggers.debug({ result }, logctx)
 
       return result
     } catch (error) {
@@ -52,8 +56,10 @@ export class InventoryService implements OnModuleInit {
     const skip = offset ?? 0
     const brandIds = mapFunction(brand, 'id')
     const typeIds = mapFunction(type, 'id')
-    console.log({ _pageNo, offset, skip, search, userId, testx: shopsId })
-
+    this.loggers.debug(
+      { _pageNo, offset, skip, search, userId, shopsId, brandIds, typeIds },
+      logctx,
+    )
     const whereCondition = {
       deleted: false,
       name: { contains: `%${search}%|%` },
@@ -72,7 +78,9 @@ export class InventoryService implements OnModuleInit {
           : {},
       shopsId,
     }
+    this.loggers.debug({ whereCondition }, logctx)
     if (isNil(shopsId) || isNil(req.userName)) {
+      this.loggers.debug('Unauthorized ShopId', logctx)
       throw new HttpException('Unauthorized ShopId', HttpStatus.UNAUTHORIZED)
     }
     try {
@@ -102,7 +110,7 @@ export class InventoryService implements OnModuleInit {
         where: whereCondition,
       })
       const totalPage = Math.ceil(totalRow / limit)
-      this.loggers.debug({ result: result.length, limit, totalPage }, logctx)
+      this.loggers.debug({ result, limit, totalPage }, logctx)
 
       return {
         inventories: result,
@@ -119,7 +127,7 @@ export class InventoryService implements OnModuleInit {
 
   async getInventory(id: string, req: ICurrentUser): Promise<common.Inventory> {
     const logctx = logContext(InventoryService, this.getInventory)
-    console.log({ id, reqe: req })
+    this.loggers.debug({ id, req }, logctx)
     try {
       const result = await this.repos.inventory.findUnique({
         where: {
@@ -142,12 +150,12 @@ export class InventoryService implements OnModuleInit {
       })
 
       if (req.shopsId !== result.shopsId) {
+        this.loggers.debug('req.shopsId !== result.shopsId:153', logctx)
         return null
       }
       this.loggers.debug({ result }, logctx)
       return result
     } catch (error) {
-      console.log({ error: error.status })
       this.loggers.error(error, `[MarchERR] getInventories error`, logctx)
       throw new HttpException('Internal Error', 500)
     }
@@ -160,6 +168,7 @@ export class InventoryService implements OnModuleInit {
     const logctx = logContext(InventoryService, this.getInventoryTypes)
     try {
       const { search, limit, offset } = params
+      this.loggers.debug({ params }, logctx)
       const result = await this.repos.inventoryType.findMany({
         where: {
           name: {
@@ -186,15 +195,19 @@ export class InventoryService implements OnModuleInit {
     req: ICurrentUser,
   ): Promise<common.InventoryType> {
     const logctx = logContext(InventoryService, this.getInventoryType)
+    this.loggers.debug({ id, req }, logctx)
     try {
       const result = await this.repos.inventoryType.findUnique({
         where: {
           id,
         },
       })
+
       if (req.shopsId !== result.shopsId) {
+        this.loggers.debug('req.shopsId !== result.shopsId:207', logctx)
         return null
       }
+      this.loggers.debug({ result }, logctx)
       return result
     } catch (error) {
       this.loggers.error(error, `[MarchERR] getInventoryType error`, logctx)
@@ -209,7 +222,7 @@ export class InventoryService implements OnModuleInit {
     const logctx = logContext(InventoryService, this.getBrandTypes)
     try {
       const { search, limit, offset } = params
-
+      this.loggers.debug({ params }, logctx)
       const result = await this.repos.brandType.findMany({
         where: {
           name: {
@@ -235,6 +248,7 @@ export class InventoryService implements OnModuleInit {
     req: ICurrentUser,
   ): Promise<common.InventoryType> {
     const logctx = logContext(InventoryService, this.getBrandType)
+    this.loggers.debug({ id, req }, logctx)
     try {
       const result = await this.repos.brandType.findUnique({
         where: {
@@ -242,6 +256,7 @@ export class InventoryService implements OnModuleInit {
         },
       })
       if (req.shopsId !== result.shopsId) {
+        this.loggers.debug('req.shopsId !== result.shopsId:259', logctx)
         return null
       }
       this.loggers.debug({ result }, logctx)
@@ -257,6 +272,7 @@ export class InventoryService implements OnModuleInit {
     req: ICurrentUser,
   ): Promise<common.ResponseInventory> {
     const logctx = logContext(InventoryService, this.deleteInventory)
+    this.loggers.debug({ id, req }, logctx)
     try {
       const checkShopId = await this.repos.inventory.findUnique({
         where: {
@@ -267,6 +283,7 @@ export class InventoryService implements OnModuleInit {
         },
       })
       if (checkShopId.shopsId !== req.shopsId) {
+        this.loggers.debug('req.shopsId !== result.shopsId:286', logctx)
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
       }
       const result = await this.repos.inventory.update({
@@ -292,6 +309,7 @@ export class InventoryService implements OnModuleInit {
     req: ICurrentUser,
   ): Promise<common.ResponseInventory> {
     const logctx = logContext(InventoryService, this.deleteInventoryType)
+    this.loggers.debug({ req, id }, logctx)
     try {
       const checkShopId = await this.repos.inventoryType.findUnique({
         where: {
@@ -301,7 +319,9 @@ export class InventoryService implements OnModuleInit {
           shopsId: true,
         },
       })
+      this.loggers.debug({ checkShopId }, logctx)
       if (checkShopId.shopsId !== req.shopsId) {
+        this.loggers.debug('req.shopsId !== result.shopsId:322', logctx)
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
       }
       const type = await this.repos.inventory.findMany({
@@ -309,7 +329,9 @@ export class InventoryService implements OnModuleInit {
           InventoryTypeId: id,
         },
       })
+      this.loggers.debug({ type }, logctx)
       if (type.length > 0) {
+        this.loggers.debug('type.length > 0', logctx)
         throw new HttpException('BADHAVETYPE', 400)
       }
       const result = await this.repos.inventoryType.update({
@@ -335,6 +357,7 @@ export class InventoryService implements OnModuleInit {
     req: ICurrentUser,
   ): Promise<common.ResponseBrand> {
     const logctx = logContext(InventoryService, this.deleteBrandType)
+    this.loggers.debug({ id, req }, logctx)
     try {
       const checkShopId = await this.repos.brandType.findUnique({
         where: {
@@ -345,6 +368,7 @@ export class InventoryService implements OnModuleInit {
         },
       })
       if (checkShopId.shopsId !== req.shopsId) {
+        this.loggers.debug('req.shopsId !== result.shopsId:371', logctx)
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
       }
       const type = await this.repos.inventory.findMany({
@@ -353,6 +377,7 @@ export class InventoryService implements OnModuleInit {
         },
       })
       if (type.length > 0) {
+        this.loggers.debug('type.length > 0', logctx)
         throw new HttpException('BADHAVETYPE  ', 400)
       }
       const result = await this.repos.brandType.update({
@@ -382,8 +407,8 @@ export class InventoryService implements OnModuleInit {
     req: ICurrentUser,
   ): Promise<common.ResponseInventory> {
     const logctx = logContext(InventoryService, this.upsertInventory)
-    const { shopsId, userId, userName } = req
-    console.log({ shopsId })
+    const { shopsId, userName } = req
+    this.loggers.debug({ req }, logctx)
     const {
       id,
       name,
@@ -411,6 +436,8 @@ export class InventoryService implements OnModuleInit {
           id: true,
         },
       })
+      this.loggers.debug({ removeDel }, logctx)
+
       if (removeDel) {
         const updateDelete = await this.repos.inventory.update({
           where: {
@@ -423,6 +450,7 @@ export class InventoryService implements OnModuleInit {
             id: true,
           },
         })
+        this.loggers.debug({ updateDelete }, logctx)
 
         return { id: updateDelete.id }
       }
@@ -442,10 +470,12 @@ export class InventoryService implements OnModuleInit {
           shopsId: true,
         },
       })
+      this.loggers.debug({ checkBrandType, checkInventoryType }, logctx)
       if (
         checkInventoryType.shopsId !== shopsId ||
         checkBrandType.shopsId !== shopsId
       ) {
+        this.loggers.debug('checkInventoryType.shopsId !== shopsId', logctx)
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
       }
 
@@ -459,6 +489,7 @@ export class InventoryService implements OnModuleInit {
           shopsId: true,
         },
       })
+      this.loggers.debug({ findDup }, logctx)
       if (!id && findDup) {
         throw new HttpException('Duplicated Name', HttpStatus.BAD_REQUEST)
       }
@@ -535,8 +566,9 @@ export class InventoryService implements OnModuleInit {
     req: ICurrentUser,
   ): Promise<common.ResponseInventory> {
     const logctx = logContext(InventoryService, this.upsertInventoryType)
-    const { id, name, description, createdBy } = input
-    const { shopsId, userId, userName } = req
+    const { id, name, description } = input
+    const { shopsId, userName } = req
+    this.loggers.debug({ input, req }, logctx)
     if (!name) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
     }
@@ -551,6 +583,8 @@ export class InventoryService implements OnModuleInit {
           id: true,
         },
       })
+      this.loggers.debug({ removeDel }, logctx)
+
       if (removeDel) {
         const updateDelete = await this.repos.inventoryType.update({
           where: {
@@ -576,6 +610,7 @@ export class InventoryService implements OnModuleInit {
           shopsId: true,
         },
       })
+      this.loggers.debug({ findDup }, logctx)
       if (!id && findDup) {
         throw new HttpException('Duplicated Name', HttpStatus.BAD_REQUEST)
       }
@@ -626,8 +661,11 @@ export class InventoryService implements OnModuleInit {
     req: ICurrentUser,
   ): Promise<common.ResponseBrand> {
     const logctx = logContext(InventoryService, this.upsertBrandType)
-    const { id, name, description, createdBy } = input
-    const { shopsId, userId, userName } = req
+    const { id, name, description } = input
+    const { shopsId, userName } = req
+
+    this.loggers.debug({ input, req }, logctx)
+
     if (!name) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
     }
@@ -642,6 +680,7 @@ export class InventoryService implements OnModuleInit {
           id: true,
         },
       })
+      this.loggers.debug({ removeDel }, logctx)
       if (removeDel) {
         const updateDelete = await this.repos.brandType.update({
           where: {
@@ -654,6 +693,7 @@ export class InventoryService implements OnModuleInit {
             id: true,
           },
         })
+        this.loggers.debug({ updateDelete }, logctx)
 
         return { id: updateDelete.id }
       }
@@ -667,7 +707,7 @@ export class InventoryService implements OnModuleInit {
           id: true,
         },
       })
-
+      this.loggers.debug({ findDup }, logctx)
       if (!id && findDup) {
         throw new HttpException('Duplicated Name', HttpStatus.BAD_REQUEST)
       }
@@ -718,6 +758,7 @@ export class InventoryService implements OnModuleInit {
     req: ICurrentUser,
   ): Promise<common.ResponseBrand> {
     const logctx = logContext(InventoryService, this.favoriteInventory)
+    this.loggers.debug({ req, id }, logctx)
     try {
       const checkShopId = await this.repos.inventory.findUnique({
         where: {
@@ -863,7 +904,7 @@ export class InventoryService implements OnModuleInit {
   async getInventoryAllDeleted(
     req: ICurrentUser,
   ): Promise<common.ResponseDeletedInventory> {
-    const logctx = logContext(InventoryService, this.uploadInventory)
+    const logctx = logContext(InventoryService, this.getInventoryAllDeleted)
     this.loggers.debug({ req }, logctx)
     const { shopsId } = req
     try {
@@ -923,10 +964,7 @@ export class InventoryService implements OnModuleInit {
         `[MarchERR] getInventoryAllDeleted error`,
         logctx,
       )
-      throw new HttpException(
-        get(error, 'message', 'Internal Error'),
-        get(error, 'status', 500),
-      )
+      throw new HttpException('Internal Error', 500)
     }
   }
 
@@ -939,7 +977,6 @@ export class InventoryService implements OnModuleInit {
 
     const { shopsId, userName } = req
     const { id, mode, type } = input
-
     if (!id) {
       throw new HttpException(
         'Bad Request id is required',
@@ -956,10 +993,10 @@ export class InventoryService implements OnModuleInit {
         deleted: true,
       },
     })
-
+    this.loggers.debug({ checkShopId }, logctx)
     try {
       if (mode === common.DeletedMode.DELETE) {
-        if (checkShopId.shopsId !== shopsId || checkShopId.deleted === true) {
+        if (checkShopId.shopsId !== shopsId || checkShopId.deleted === false) {
           throw new HttpException(
             'Bad Request id is required',
             HttpStatus.BAD_REQUEST,
@@ -973,6 +1010,8 @@ export class InventoryService implements OnModuleInit {
             id: true,
           },
         })
+        this.loggers.debug({ deleted }, logctx)
+
         return {
           id: deleted?.id,
           type: type,
@@ -997,9 +1036,12 @@ export class InventoryService implements OnModuleInit {
             id: true,
           },
         })
+        this.loggers.debug({ deleted }, logctx)
+
         return {
           id: deleted?.id,
           type: type,
+          mode: mode,
         }
       }
     } catch (error) {

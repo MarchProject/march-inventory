@@ -178,6 +178,7 @@ input RecoveryHardDeletedInput {
 type RecoveryHardDeleted {
   id: String
   type: DeletedType
+  mode: DeletedMode
 }
 
 type ResponseFileUploadNames {

@@ -193,8 +193,6 @@ export abstract class IMutation {
     abstract favoriteInventory(id: string): ResponseFavorite | Promise<ResponseFavorite>;
 
     abstract recoveryHardDeleted(input: RecoveryHardDeletedInput): RecoveryHardDeleted | Promise<RecoveryHardDeleted>;
-
-    abstract fileUpload(id: string): ResponseGetUploadFile | Promise<ResponseGetUploadFile>;
 }
 
 export abstract class IQuery {
@@ -215,13 +213,12 @@ export abstract class IQuery {
     abstract getBrandTypes(params?: ParamsInventoryBrand): BrandType[] | Promise<BrandType[]>;
 
     abstract getInventoryAllDeleted(): ResponseDeletedInventory | Promise<ResponseDeletedInventory>;
-
-    abstract getFileUploadNames(): ResponseFileUploadNames[] | Promise<ResponseFileUploadNames[]>;
 }
 
 export class RecoveryHardDeleted {
     id?: string;
     type?: DeletedType;
+    mode?: DeletedMode;
 }
 
 export class ResponseBrand {
