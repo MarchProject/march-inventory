@@ -27,12 +27,17 @@
     "gql:ts:gen": "ts-node ./scripts/generate-typings.ts",
     "seed": "export $(cat dev.env | xargs) && ts-node prisma/seed/index.ts",
     "prisma:gen": "prisma generate --schema=./prisma/schema.prisma",
-    "rebuild": "rm -rf node_modules && pnpm i . && pnpm prisma:gen"
+    "rebuild": "rm -rf node_modules && pnpm i . && pnpm prisma:gen",
+    "proto:gen:client": "ts-node ./scripts/proto.ts client",
+    "proto:gen:server": "ts-node ./scripts/proto.ts server"
   },
   "dependencies": {
     "@march/core": "workspace:1.0.0",
     "@nestjs-modules/ioredis": "^1.0.1",
     "@nestjs/axios": "0.1.0",
+    "@grpc/grpc-js": "1.4.5",
+    "grpc": "^1.24.11",
+    "@grpc/proto-loader": "0.6.4",
     "@nestjs/common": "9.0.3",
     "@nestjs/config": "2.3.1",
     "@nestjs/core": "9.0.3",
@@ -57,7 +62,11 @@
     "ioredis": "^5.2.5",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
+    "protobufjs": "6.11.2",
     "march-inventory": "link:",
+    "google-protobuf": "^3.19.4",
+    "@nestjs/swagger": "5.1.5",
+    "fs": "0.0.1-security",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
@@ -69,6 +78,7 @@
     "uuidv4": "^6.2.13"
   },
   "devDependencies": {
+    "@dap/nestjs-proto-gen-ts": "workspace:1.0.20",
     "@nestjs/cli": "^9.0.0",
     "@nestjs/schematics": "^9.0.0",
     "@nestjs/testing": "^9.0.0",
