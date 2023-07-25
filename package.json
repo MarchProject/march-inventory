@@ -78,7 +78,7 @@
     "uuidv4": "^6.2.13"
   },
   "devDependencies": {
-    "@dap/nestjs-proto-gen-ts": "workspace:1.0.20",
+    "@grpc/nestjs-proto-gen-ts": "workspace:1.0.20",
     "@nestjs/cli": "^9.0.0",
     "@nestjs/schematics": "^9.0.0",
     "@nestjs/testing": "^9.0.0",
