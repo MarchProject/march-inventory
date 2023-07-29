@@ -14,7 +14,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:local": "export $(cat local.env | xargs) && rm -Rf dist && nest start --watch --debug",
-    "start:dev": "sh delete-conflict-dependencies.sh && source .env && rm -Rf dist && nest start --watch",
+    "start:dev": "export $(cat .env | xargs) && rm -Rf dist && nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
