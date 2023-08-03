@@ -11,6 +11,7 @@ export interface ICurrentUser {
   shopsId: string
   userId: string
   userName: string
+  tasks: string[]
 }
 
 export const CurrentUser = createParamDecorator(
@@ -26,6 +27,7 @@ export const CurrentUser = createParamDecorator(
       shopsId: ctx.getContext().req.shopsId,
       userId: ctx.getContext().req.userId,
       userName: ctx.getContext().req.userName,
+      tasks: ctx.getContext().req.taskServices,
     }
   },
 )

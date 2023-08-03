@@ -104,11 +104,12 @@ export class InventoryResolver {
   ): Promise<common.ResponseInventory> {
     const logctx = logContext(InventoryResolver, this.upsertInventory)
     this.loggers.debug({ req }, logctx)
+    await this.inventoryService.checkUpsert(req.tasks, input.id, 'INUP', 'INCP')
     const result = await this.inventoryService.upsertInventory(input, req)
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
+  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
   @Mutation(() => String, { name: 'upsertInventoryType' })
   async upsertInventoryType(
     @Args('input') input: common.UpsertInventoryTypeInput,
@@ -116,6 +117,7 @@ export class InventoryResolver {
   ): Promise<common.ResponseInventory> {
     const logctx = logContext(InventoryResolver, this.upsertInventoryType)
     this.loggers.debug({ input }, logctx)
+    await this.inventoryService.checkUpsert(req.tasks, input.id, 'INTU', 'INTC')
     const result = await this.inventoryService.upsertInventoryType(input, req)
     return result
   }
@@ -128,6 +130,7 @@ export class InventoryResolver {
   ): Promise<common.ResponseBrand> {
     const logctx = logContext(InventoryResolver, this.upsertBrandType)
     this.loggers.debug({ input }, logctx)
+    await this.inventoryService.checkUpsert(req.tasks, input.id, 'INBU', 'INBC')
     const result = await this.inventoryService.upsertBrandType(input, req)
     return result
   }
@@ -152,6 +155,7 @@ export class InventoryResolver {
   ): Promise<common.ResponseBrand> {
     const logctx = logContext(InventoryResolver, this.favoriteInventory)
     this.loggers.debug({ id }, logctx)
+    await this.inventoryService.checkUpsert(req.tasks, id, 'INBU', 'INBC')
     const result = await this.inventoryService.favoriteInventory(id, req)
     return result
   }

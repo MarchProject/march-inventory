@@ -1052,4 +1052,25 @@ export class InventoryService implements OnModuleInit {
       )
     }
   }
+
+  async checkUpsert(
+    tasks: string[],
+    id: string,
+    update: string,
+    create: string,
+  ) {
+    if (id) {
+      if (tasks.includes(update)) {
+        return
+      } else {
+        throw new HttpException('Permission', HttpStatus.UNAUTHORIZED)
+      }
+    } else {
+      if (tasks.includes(create)) {
+        return
+      } else {
+        throw new HttpException('Permission', HttpStatus.UNAUTHORIZED)
+      }
+    }
+  }
 }
