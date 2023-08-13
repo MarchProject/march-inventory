@@ -40,7 +40,10 @@ export class InventoryService implements OnModuleInit {
       return result
     } catch (error) {
       this.loggers.error(error, `[MarchERR] getInventoryNames error`, logctx)
-      throw new HttpException('Internal Error', 500)
+      throw new HttpException(
+        'Internal Error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      )
     }
   }
 
@@ -301,7 +304,10 @@ export class InventoryService implements OnModuleInit {
       return result
     } catch (error) {
       this.loggers.error(error, `[MarchERR] deleteInventory error`, logctx)
-      throw new HttpException('Internal Error', 500)
+      throw new HttpException(
+        get(error, 'message', 'Internal Error'),
+        get(error, 'status', HttpStatus.INTERNAL_SERVER_ERROR),
+      )
     }
   }
   async deleteInventoryType(
@@ -426,34 +432,34 @@ export class InventoryService implements OnModuleInit {
       createdBy,
     } = input
     try {
-      const removeDel = await this.repos.inventory.findFirst({
-        where: {
-          shopsId,
-          name: name + '|' + shopsId,
-          deleted: true,
-        },
-        select: {
-          id: true,
-        },
-      })
-      this.loggers.debug({ removeDel }, logctx)
+      // const removeDel = await this.repos.inventory.findFirst({
+      //   where: {
+      //     shopsId,
+      //     name: name + '|' + shopsId,
+      //     deleted: true,
+      //   },
+      //   select: {
+      //     id: true,
+      //   },
+      // })
+      // this.loggers.debug({ removeDel }, logctx)
 
-      if (removeDel) {
-        const updateDelete = await this.repos.inventory.update({
-          where: {
-            id: removeDel.id,
-          },
-          data: {
-            deleted: false,
-          },
-          select: {
-            id: true,
-          },
-        })
-        this.loggers.debug({ updateDelete }, logctx)
+      // if (removeDel) {
+      //   const updateDelete = await this.repos.inventory.update({
+      //     where: {
+      //       id: removeDel.id,
+      //     },
+      //     data: {
+      //       deleted: false,
+      //     },
+      //     select: {
+      //       id: true,
+      //     },
+      //   })
+      //   this.loggers.debug({ updateDelete }, logctx)
 
-        return { id: updateDelete.id }
-      }
+      //   return { id: updateDelete.id }
+      // }
       const checkInventoryType = await this.repos.inventoryType.findUnique({
         where: {
           id: inventoryTypeId,
@@ -573,33 +579,33 @@ export class InventoryService implements OnModuleInit {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
     }
     try {
-      const removeDel = await this.repos.inventoryType.findFirst({
-        where: {
-          shopsId,
-          name: name + '|' + shopsId,
-          deleted: true,
-        },
-        select: {
-          id: true,
-        },
-      })
-      this.loggers.debug({ removeDel }, logctx)
+      // const removeDel = await this.repos.inventoryType.findFirst({
+      //   where: {
+      //     shopsId,
+      //     name: name + '|' + shopsId,
+      //     deleted: true,
+      //   },
+      //   select: {
+      //     id: true,
+      //   },
+      // })
+      // this.loggers.debug({ removeDel }, logctx)
 
-      if (removeDel) {
-        const updateDelete = await this.repos.inventoryType.update({
-          where: {
-            id: removeDel.id,
-          },
-          data: {
-            deleted: false,
-          },
-          select: {
-            id: true,
-          },
-        })
+      // if (removeDel) {
+      //   const updateDelete = await this.repos.inventoryType.update({
+      //     where: {
+      //       id: removeDel.id,
+      //     },
+      //     data: {
+      //       deleted: false,
+      //     },
+      //     select: {
+      //       id: true,
+      //     },
+      //   })
 
-        return { id: updateDelete.id }
-      }
+      //   return { id: updateDelete.id }
+      // }
       const findDup = await this.repos.inventoryType.findFirst({
         where: {
           name: name + '|' + shopsId,
@@ -670,33 +676,33 @@ export class InventoryService implements OnModuleInit {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
     }
     try {
-      const removeDel = await this.repos.brandType.findFirst({
-        where: {
-          shopsId,
-          name: name + '|' + shopsId,
-          deleted: true,
-        },
-        select: {
-          id: true,
-        },
-      })
-      this.loggers.debug({ removeDel }, logctx)
-      if (removeDel) {
-        const updateDelete = await this.repos.brandType.update({
-          where: {
-            id: removeDel.id,
-          },
-          data: {
-            deleted: false,
-          },
-          select: {
-            id: true,
-          },
-        })
-        this.loggers.debug({ updateDelete }, logctx)
+      // const removeDel = await this.repos.brandType.findFirst({
+      //   where: {
+      //     shopsId,
+      //     name: name + '|' + shopsId,
+      //     deleted: true,
+      //   },
+      //   select: {
+      //     id: true,
+      //   },
+      // })
+      // this.loggers.debug({ removeDel }, logctx)
+      // if (removeDel) {
+      //   const updateDelete = await this.repos.brandType.update({
+      //     where: {
+      //       id: removeDel.id,
+      //     },
+      //     data: {
+      //       deleted: false,
+      //     },
+      //     select: {
+      //       id: true,
+      //     },
+      //   })
+      //   this.loggers.debug({ updateDelete }, logctx)
 
-        return { id: updateDelete.id }
-      }
+      //   return { id: updateDelete.id }
+      // }
 
       const findDup = await this.repos.brandType.findFirst({
         where: {
