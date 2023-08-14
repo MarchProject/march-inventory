@@ -154,13 +154,16 @@ export class InventoryService implements OnModuleInit {
 
       if (req.shopsId !== result.shopsId) {
         this.loggers.debug('req.shopsId !== result.shopsId:153', logctx)
-        return null
+        throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN)
       }
       this.loggers.debug({ result }, logctx)
       return result
     } catch (error) {
       this.loggers.error(error, `[MarchERR] getInventories error`, logctx)
-      throw new HttpException('Internal Error', 500)
+      throw new HttpException(
+        get(error, 'message', 'Internal Error'),
+        get(error, 'status', HttpStatus.INTERNAL_SERVER_ERROR),
+      )
     }
   }
 
@@ -384,7 +387,7 @@ export class InventoryService implements OnModuleInit {
       })
       if (type.length > 0) {
         this.loggers.debug('type.length > 0', logctx)
-        throw new HttpException('BADHAVETYPE  ', 400)
+        throw new HttpException('BADHAVETYPE', 400)
       }
       const result = await this.repos.brandType.update({
         where: {
