@@ -41,7 +41,7 @@ export class InventoryResolver {
   async getInventory(
     @Args('id') id: string,
     @CurrentUser() req: ICurrentUser,
-  ): Promise<common.Inventory> {
+  ): Promise<common.ResponseDataInventory> {
     const logctx = logContext(InventoryResolver, this.getInventory)
     const result = await this.inventoryService.getInventory(id, req)
     this.loggers.debug({ result }, logctx)
@@ -101,7 +101,7 @@ export class InventoryResolver {
   async upsertInventory(
     @Args('input') input: common.UpsertInventoryInput,
     @CurrentUser() req: ICurrentUser,
-  ): Promise<common.ResponseInventory> {
+  ): Promise<common.UpsertInventoryResponse> {
     const logctx = logContext(InventoryResolver, this.upsertInventory)
     this.loggers.debug({ req }, logctx)
     await this.inventoryService.checkUpsert(req.tasks, input.id, 'INUP', 'INCP')

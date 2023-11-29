@@ -10,7 +10,7 @@ import { logContext } from 'src/common/helpers/log'
 import * as common from 'src/types'
 import { v4 as uuidv4 } from 'uuid'
 import { ICurrentUser } from 'src/common/helpers/user'
-import { mapFunction } from '@march/core'
+import { mapFunction, statusCode } from '@march/core'
 import { get, isNil } from 'lodash'
 import { tranfromUploadCsv } from './inventory.dto'
 
@@ -128,7 +128,10 @@ export class InventoryService implements OnModuleInit {
     }
   }
 
-  async getInventory(id: string, req: ICurrentUser): Promise<common.Inventory> {
+  async getInventory(
+    id: string,
+    req: ICurrentUser,
+  ): Promise<common.ResponseDataInventory> {
     const logctx = logContext(InventoryService, this.getInventory)
     this.loggers.debug({ id, req }, logctx)
     try {
@@ -154,16 +157,27 @@ export class InventoryService implements OnModuleInit {
 
       if (req.shopsId !== result.shopsId) {
         this.loggers.debug('req.shopsId !== result.shopsId:153', logctx)
-        throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN)
+        return {
+          data: null,
+          status: statusCode.forbidden,
+        }
+        // throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN)
       }
       this.loggers.debug({ result }, logctx)
-      return result
+      return {
+        data: result,
+        status: statusCode.success,
+      }
     } catch (error) {
       this.loggers.error(error, `[MarchERR] getInventories error`, logctx)
-      throw new HttpException(
-        get(error, 'message', 'Internal Error'),
-        get(error, 'status', HttpStatus.INTERNAL_SERVER_ERROR),
-      )
+      return {
+        data: null,
+        status: statusCode.internalError,
+      }
+      // throw new HttpException(
+      //   get(error, 'message', 'Internal Error'),
+      //   get(error, 'status', HttpStatus.INTERNAL_SERVER_ERROR),
+      // )
     }
   }
 
@@ -414,7 +428,7 @@ export class InventoryService implements OnModuleInit {
   async upsertInventory(
     input: common.UpsertInventoryInput,
     req: ICurrentUser,
-  ): Promise<common.ResponseInventory> {
+  ): Promise<common.UpsertInventoryResponse> {
     const logctx = logContext(InventoryService, this.upsertInventory)
     const { shopsId, userName } = req
     this.loggers.debug({ req }, logctx)
@@ -435,34 +449,6 @@ export class InventoryService implements OnModuleInit {
       createdBy,
     } = input
     try {
-      // const removeDel = await this.repos.inventory.findFirst({
-      //   where: {
-      //     shopsId,
-      //     name: name + '|' + shopsId,
-      //     deleted: true,
-      //   },
-      //   select: {
-      //     id: true,
-      //   },
-      // })
-      // this.loggers.debug({ removeDel }, logctx)
-
-      // if (removeDel) {
-      //   const updateDelete = await this.repos.inventory.update({
-      //     where: {
-      //       id: removeDel.id,
-      //     },
-      //     data: {
-      //       deleted: false,
-      //     },
-      //     select: {
-      //       id: true,
-      //     },
-      //   })
-      //   this.loggers.debug({ updateDelete }, logctx)
-
-      //   return { id: updateDelete.id }
-      // }
       const checkInventoryType = await this.repos.inventoryType.findUnique({
         where: {
           id: inventoryTypeId,
@@ -485,7 +471,10 @@ export class InventoryService implements OnModuleInit {
         checkBrandType.shopsId !== shopsId
       ) {
         this.loggers.debug('checkInventoryType.shopsId !== shopsId', logctx)
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+        return {
+          data: null,
+          status: statusCode.forbidden,
+        }
       }
 
       const findDup = await this.repos.inventory.findFirst({
@@ -500,10 +489,16 @@ export class InventoryService implements OnModuleInit {
       })
       this.loggers.debug({ findDup }, logctx)
       if (!id && findDup) {
-        throw new HttpException('Duplicated Name', HttpStatus.BAD_REQUEST)
+        return {
+          data: null,
+          status: statusCode.duplicated,
+        }
       }
       if (id && findDup && id !== findDup.id) {
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+        return {
+          data: null,
+          status: statusCode.badRequest,
+        }
       }
       const width = get(size, 'width', '0')
       const length = get(size, 'length', '0')
@@ -558,15 +553,16 @@ export class InventoryService implements OnModuleInit {
       this.loggers.debug({ result }, logctx)
 
       return {
-        id: result.id,
+        data: { id: result.id },
+        status: statusCode.success,
       }
     } catch (error) {
       this.loggers.debug({ error }, logctx)
       this.loggers.error(error, `[MarchERR] upsertInventory error`, logctx)
-      throw new HttpException(
-        get(error, 'message', 'Internal Error'),
-        get(error, 'status', 500),
-      )
+      return {
+        data: null,
+        status: statusCode.internalError,
+      }
     }
   }
 

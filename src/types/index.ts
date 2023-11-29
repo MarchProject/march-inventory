@@ -178,7 +178,7 @@ export class InventoryType {
 export abstract class IMutation {
     abstract uploadInventory(input: UploadInventoryInput): UploadInventoryResponse | Promise<UploadInventoryResponse>;
 
-    abstract upsertInventory(input: UpsertInventoryInput): ResponseInventory | Promise<ResponseInventory>;
+    abstract upsertInventory(input: UpsertInventoryInput): UpsertInventoryResponse | Promise<UpsertInventoryResponse>;
 
     abstract deleteInventory(id: string): ResponseInventory | Promise<ResponseInventory>;
 
@@ -200,7 +200,7 @@ export abstract class IQuery {
 
     abstract getInventoryNames(): InventoryName[] | Promise<InventoryName[]>;
 
-    abstract getInventory(id?: string): Inventory | Promise<Inventory>;
+    abstract getInventory(id?: string): ResponseDataInventory | Promise<ResponseDataInventory>;
 
     abstract getInventories(params?: ParamsInventory): ResponseInventories | Promise<ResponseInventories>;
 
@@ -225,6 +225,11 @@ export class ResponseBrand {
     id?: string;
 }
 
+export class ResponseDataInventory {
+    data?: Inventory;
+    status?: Status;
+}
+
 export class ResponseDeletedInventory {
     inventory?: DeletedInventory[];
     brand?: DeletedInventory[];
@@ -245,6 +250,10 @@ export class ResponseGetUploadFile {
     data?: DataUploadFile[];
 }
 
+export class ResponseId {
+    id?: string;
+}
+
 export class ResponseInventories {
     inventories?: Inventory[];
     pageLimit?: number;
@@ -257,10 +266,20 @@ export class ResponseInventory {
     id?: string;
 }
 
+export class Status {
+    code: number;
+    message?: string;
+}
+
 export class UploadInventoryResponse {
     id?: string;
     success?: boolean;
     reason?: string;
+}
+
+export class UpsertInventoryResponse {
+    data?: ResponseId;
+    status?: Status;
 }
 
 export type SortOrder = any;
