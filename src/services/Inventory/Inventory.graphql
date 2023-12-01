@@ -44,6 +44,11 @@ type BrandType {
   createdAt: Date
 }
 
+type ResponseDataInventoryBrands {
+  data: [BrandType]
+  status: Status
+}
+
 type ResponseDataInventory {
   data: Inventory
   status: Status
@@ -75,7 +80,12 @@ type ResponseId {
   id: String
 }
 
-type UpsertInventoryResponse {
+type MutationInventoryResponse {
+  data: ResponseId
+  status: Status
+}
+
+type DeleteInventoryResponse {
   data: ResponseId
   status: Status
 }
@@ -113,7 +123,7 @@ input UpsertInventoryInput {
   updatedBy: String
 }
 
-input UpsertInventoryTypeInput {
+input UpsertTypeInventoryInput {
   id: String
   name: String!
   description: String
@@ -121,7 +131,7 @@ input UpsertInventoryTypeInput {
   updatedBy: String
 }
 
-input UpsertBrandTypeInput {
+input UpsertBrandInventoryInput {
   id: String
   name: String!
   description: String
@@ -231,13 +241,17 @@ type ResponseGetUploadFile {
 
 type Mutation {
   uploadInventory(input: UploadInventoryInput!): UploadInventoryResponse
-  upsertInventory(input: UpsertInventoryInput!): UpsertInventoryResponse
-  deleteInventory(id: String!): ResponseInventory
-  upsertInventoryType(input: UpsertInventoryTypeInput!): ResponseInventory
-  deleteInventoryType(id: String!): ResponseInventory
-  upsertBrandType(input: UpsertBrandTypeInput!): ResponseBrand
-  deleteBrandType(id: String!): ResponseBrand
-  favoriteInventory(id: String!): ResponseFavorite
+  upsertInventory(input: UpsertInventoryInput!): MutationInventoryResponse
+  deleteInventory(id: String!): MutationInventoryResponse
+  upsertTypeInventory(
+    input: UpsertTypeInventoryInput!
+  ): MutationInventoryResponse
+  deleteInventoryType(id: String!): MutationInventoryResponse
+  upsertBrandInventory(
+    input: UpsertBrandInventoryInput!
+  ): MutationInventoryResponse
+  deleteBrandType(id: String!): MutationInventoryResponse
+  favoriteInventory(id: String!): MutationInventoryResponse
   recoveryHardDeleted(input: RecoveryHardDeletedInput!): RecoveryHardDeleted
   # fileUpload(id: String!): ResponseGetUploadFile
 }
@@ -249,7 +263,7 @@ type Query {
   getInventoryType(id: String): InventoryType
   getInventoryTypes(params: ParamsInventoryType): [InventoryType]
   getBrandType(id: String): BrandType
-  getBrandTypes(params: ParamsInventoryBrand): [BrandType]
+  getBrandTypes(params: ParamsInventoryBrand): ResponseDataInventoryBrands
   getInventoryAllDeleted: ResponseDeletedInventory
   # getFileUploadNames: [ResponseFileUploadNames]
 }

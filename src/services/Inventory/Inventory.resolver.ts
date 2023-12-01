@@ -77,7 +77,7 @@ export class InventoryResolver {
   async getBrandTypes(
     @CurrentUser() req: ICurrentUser,
     @Args('params') params: common.ParamsInventoryBrand,
-  ): Promise<common.BrandType[]> {
+  ): Promise<common.ResponseDataInventoryBrands> {
     const logctx = logContext(InventoryResolver, this.getBrandTypes)
     const result = await this.inventoryService.getBrandTypes(req, params)
     this.loggers.debug({ result }, logctx)
@@ -101,7 +101,7 @@ export class InventoryResolver {
   async upsertInventory(
     @Args('input') input: common.UpsertInventoryInput,
     @CurrentUser() req: ICurrentUser,
-  ): Promise<common.UpsertInventoryResponse> {
+  ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryResolver, this.upsertInventory)
     this.loggers.debug({ req }, logctx)
     await this.inventoryService.checkUpsert(req.tasks, input.id, 'INUP', 'INCP')
@@ -110,12 +110,12 @@ export class InventoryResolver {
   }
 
   @UseGuards(new UserAuthGuard(uamAuthRole.Any))
-  @Mutation(() => String, { name: 'upsertInventoryType' })
-  async upsertInventoryType(
-    @Args('input') input: common.UpsertInventoryTypeInput,
+  @Mutation(() => String, { name: 'upsertTypeInventory' })
+  async upsertTypeInventory(
+    @Args('input') input: common.UpsertTypeInventoryInput,
     @CurrentUser() req: ICurrentUser,
-  ): Promise<common.ResponseInventory> {
-    const logctx = logContext(InventoryResolver, this.upsertInventoryType)
+  ): Promise<common.MutationInventoryResponse> {
+    const logctx = logContext(InventoryResolver, this.upsertTypeInventory)
     this.loggers.debug({ input }, logctx)
     await this.inventoryService.checkUpsert(req.tasks, input.id, 'INTU', 'INTC')
     const result = await this.inventoryService.upsertInventoryType(input, req)
@@ -123,15 +123,15 @@ export class InventoryResolver {
   }
 
   @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
-  @Mutation(() => String, { name: 'upsertBrandType' })
-  async upsertBrandType(
-    @Args('input') input: common.UpsertBrandTypeInput,
+  @Mutation(() => String, { name: 'upsertBrandInventory' })
+  async upsertBrandInventory(
+    @Args('input') input: common.UpsertBrandInventoryInput,
     @CurrentUser() req: ICurrentUser,
-  ): Promise<common.ResponseBrand> {
-    const logctx = logContext(InventoryResolver, this.upsertBrandType)
+  ): Promise<common.MutationInventoryResponse> {
+    const logctx = logContext(InventoryResolver, this.upsertBrandInventory)
     this.loggers.debug({ input }, logctx)
     await this.inventoryService.checkUpsert(req.tasks, input.id, 'INBU', 'INBC')
-    const result = await this.inventoryService.upsertBrandType(input, req)
+    const result = await this.inventoryService.upsertBrandInventory(input, req)
     return result
   }
 
@@ -140,7 +140,7 @@ export class InventoryResolver {
   async deleteBrandType(
     @Args('id') id: string,
     @CurrentUser() req: ICurrentUser,
-  ): Promise<common.ResponseBrand> {
+  ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryResolver, this.deleteBrandType)
     this.loggers.debug({ id }, logctx)
     const result = await this.inventoryService.deleteBrandType(id, req)
@@ -152,7 +152,7 @@ export class InventoryResolver {
   async favoriteInventory(
     @Args('id') id: string,
     @CurrentUser() req: ICurrentUser,
-  ): Promise<common.ResponseBrand> {
+  ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryResolver, this.favoriteInventory)
     this.loggers.debug({ id }, logctx)
     await this.inventoryService.checkUpsert(req.tasks, id, 'INBU', 'INBC')
@@ -165,7 +165,7 @@ export class InventoryResolver {
   async deleteInventory(
     @Args('id') id: string,
     @CurrentUser() req: ICurrentUser,
-  ): Promise<common.ResponseInventory> {
+  ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryResolver, this.deleteInventory)
     this.loggers.debug({ id }, logctx)
     const result = await this.inventoryService.deleteInventory(id, req)
@@ -177,7 +177,7 @@ export class InventoryResolver {
   async deleteInventoryType(
     @Args('id') id: string,
     @CurrentUser() req: ICurrentUser,
-  ): Promise<common.ResponseInventory> {
+  ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryResolver, this.deleteInventoryType)
     this.loggers.debug({ id }, logctx)
     const result = await this.inventoryService.deleteInventoryType(id, req)

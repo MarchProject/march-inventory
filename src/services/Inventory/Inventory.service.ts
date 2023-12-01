@@ -157,27 +157,13 @@ export class InventoryService implements OnModuleInit {
 
       if (req.shopsId !== result.shopsId) {
         this.loggers.debug('req.shopsId !== result.shopsId:153', logctx)
-        return {
-          data: null,
-          status: statusCode.forbidden,
-        }
-        // throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN)
+        return statusCode.forbidden
       }
       this.loggers.debug({ result }, logctx)
-      return {
-        data: result,
-        status: statusCode.success,
-      }
+      return statusCode.success(result)
     } catch (error) {
       this.loggers.error(error, `[MarchERR] getInventories error`, logctx)
-      return {
-        data: null,
-        status: statusCode.internalError,
-      }
-      // throw new HttpException(
-      //   get(error, 'message', 'Internal Error'),
-      //   get(error, 'status', HttpStatus.INTERNAL_SERVER_ERROR),
-      // )
+      return statusCode.internalError
     }
   }
 
@@ -238,7 +224,7 @@ export class InventoryService implements OnModuleInit {
   async getBrandTypes(
     req: ICurrentUser,
     params: common.ParamsInventoryBrand,
-  ): Promise<common.InventoryType[]> {
+  ): Promise<common.ResponseDataInventoryBrands> {
     const logctx = logContext(InventoryService, this.getBrandTypes)
     try {
       const { search, limit, offset } = params
@@ -256,10 +242,11 @@ export class InventoryService implements OnModuleInit {
       })
       this.loggers.debug({ result }, logctx)
 
-      return result
+      return statusCode.success(result)
     } catch (error) {
       this.loggers.error(error, `[MarchERR] getBrandTypes error`, logctx)
-      throw new HttpException('Internal Error', 500)
+
+      return statusCode.internalError
     }
   }
 
@@ -290,7 +277,7 @@ export class InventoryService implements OnModuleInit {
   async deleteInventory(
     id: string,
     req: ICurrentUser,
-  ): Promise<common.ResponseInventory> {
+  ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryService, this.deleteInventory)
     this.loggers.debug({ id, req }, logctx)
     try {
@@ -304,7 +291,7 @@ export class InventoryService implements OnModuleInit {
       })
       if (checkShopId.shopsId !== req.shopsId) {
         this.loggers.debug('req.shopsId !== result.shopsId:286', logctx)
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+        return statusCode.forbidden
       }
       const result = await this.repos.inventory.update({
         where: {
@@ -318,19 +305,17 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ result }, logctx)
-      return result
+
+      return statusCode.success(result)
     } catch (error) {
       this.loggers.error(error, `[MarchERR] deleteInventory error`, logctx)
-      throw new HttpException(
-        get(error, 'message', 'Internal Error'),
-        get(error, 'status', HttpStatus.INTERNAL_SERVER_ERROR),
-      )
+      return statusCode.internalError
     }
   }
   async deleteInventoryType(
     id: string,
     req: ICurrentUser,
-  ): Promise<common.ResponseInventory> {
+  ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryService, this.deleteInventoryType)
     this.loggers.debug({ req, id }, logctx)
     try {
@@ -345,7 +330,7 @@ export class InventoryService implements OnModuleInit {
       this.loggers.debug({ checkShopId }, logctx)
       if (checkShopId.shopsId !== req.shopsId) {
         this.loggers.debug('req.shopsId !== result.shopsId:322', logctx)
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+        return statusCode.forbidden
       }
       const type = await this.repos.inventory.findMany({
         where: {
@@ -355,7 +340,7 @@ export class InventoryService implements OnModuleInit {
       this.loggers.debug({ type }, logctx)
       if (type.length > 0) {
         this.loggers.debug('type.length > 0', logctx)
-        throw new HttpException('BADHAVETYPE', 400)
+        return statusCode.onUse
       }
       const result = await this.repos.inventoryType.update({
         where: {
@@ -369,16 +354,16 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ result }, logctx)
-      return result
+      return statusCode.success(result)
     } catch (error) {
       this.loggers.error(error, `[MarchERR] deleteInventoryType error`, logctx)
-      throw new HttpException(error.message, error.status)
+      return statusCode.internalError
     }
   }
   async deleteBrandType(
     id: string,
     req: ICurrentUser,
-  ): Promise<common.ResponseBrand> {
+  ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryService, this.deleteBrandType)
     this.loggers.debug({ id, req }, logctx)
     try {
@@ -392,7 +377,7 @@ export class InventoryService implements OnModuleInit {
       })
       if (checkShopId.shopsId !== req.shopsId) {
         this.loggers.debug('req.shopsId !== result.shopsId:371', logctx)
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+        return statusCode.forbidden
       }
       const type = await this.repos.inventory.findMany({
         where: {
@@ -401,7 +386,7 @@ export class InventoryService implements OnModuleInit {
       })
       if (type.length > 0) {
         this.loggers.debug('type.length > 0', logctx)
-        throw new HttpException('BADHAVETYPE', 400)
+        return statusCode.onUse
       }
       const result = await this.repos.brandType.update({
         where: {
@@ -415,20 +400,17 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ result }, logctx)
-      return result
+      return statusCode.success(result)
     } catch (error) {
       this.loggers.error(error, `[MarchERR] deleteBrandType error`, logctx)
-      throw new HttpException(
-        get(error, 'message', 'Internal Error'),
-        get(error, 'status', 500),
-      )
+      return statusCode.internalError
     }
   }
 
   async upsertInventory(
     input: common.UpsertInventoryInput,
     req: ICurrentUser,
-  ): Promise<common.UpsertInventoryResponse> {
+  ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryService, this.upsertInventory)
     const { shopsId, userName } = req
     this.loggers.debug({ req }, logctx)
@@ -471,10 +453,7 @@ export class InventoryService implements OnModuleInit {
         checkBrandType.shopsId !== shopsId
       ) {
         this.loggers.debug('checkInventoryType.shopsId !== shopsId', logctx)
-        return {
-          data: null,
-          status: statusCode.forbidden,
-        }
+        return statusCode.forbidden
       }
 
       const findDup = await this.repos.inventory.findFirst({
@@ -489,16 +468,10 @@ export class InventoryService implements OnModuleInit {
       })
       this.loggers.debug({ findDup }, logctx)
       if (!id && findDup) {
-        return {
-          data: null,
-          status: statusCode.duplicated,
-        }
+        return statusCode.duplicated
       }
       if (id && findDup && id !== findDup.id) {
-        return {
-          data: null,
-          status: statusCode.badRequest,
-        }
+        return statusCode.badRequest
       }
       const width = get(size, 'width', '0')
       const length = get(size, 'length', '0')
@@ -551,60 +524,26 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ result }, logctx)
-
-      return {
-        data: { id: result.id },
-        status: statusCode.success,
-      }
+      return statusCode.success({ id: result.id })
     } catch (error) {
       this.loggers.debug({ error }, logctx)
       this.loggers.error(error, `[MarchERR] upsertInventory error`, logctx)
-      return {
-        data: null,
-        status: statusCode.internalError,
-      }
+      return statusCode.internalError
     }
   }
 
   async upsertInventoryType(
-    input: common.UpsertInventoryTypeInput,
+    input: common.UpsertTypeInventoryInput,
     req: ICurrentUser,
-  ): Promise<common.ResponseInventory> {
+  ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryService, this.upsertInventoryType)
     const { id, name, description } = input
     const { shopsId, userName } = req
     this.loggers.debug({ input, req }, logctx)
     if (!name) {
-      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+      return statusCode.badRequest
     }
     try {
-      // const removeDel = await this.repos.inventoryType.findFirst({
-      //   where: {
-      //     shopsId,
-      //     name: name + '|' + shopsId,
-      //     deleted: true,
-      //   },
-      //   select: {
-      //     id: true,
-      //   },
-      // })
-      // this.loggers.debug({ removeDel }, logctx)
-
-      // if (removeDel) {
-      //   const updateDelete = await this.repos.inventoryType.update({
-      //     where: {
-      //       id: removeDel.id,
-      //     },
-      //     data: {
-      //       deleted: false,
-      //     },
-      //     select: {
-      //       id: true,
-      //     },
-      //   })
-
-      //   return { id: updateDelete.id }
-      // }
       const findDup = await this.repos.inventoryType.findFirst({
         where: {
           name: name + '|' + shopsId,
@@ -617,10 +556,10 @@ export class InventoryService implements OnModuleInit {
       })
       this.loggers.debug({ findDup }, logctx)
       if (!id && findDup) {
-        throw new HttpException('Duplicated Name', HttpStatus.BAD_REQUEST)
+        return statusCode.duplicated
       }
       if (id && findDup && id !== findDup.id) {
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+        return statusCode.badRequest
       }
 
       const result = await this.repos.inventoryType.upsert({
@@ -647,62 +586,28 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ result }, logctx)
-
-      return {
-        id: result.id,
-      }
+      return statusCode.success(result)
     } catch (error) {
       this.loggers.debug({ error }, logctx)
       this.loggers.error(error, `[MarchERR] upsertInventoryType error`, logctx)
-      throw new HttpException(
-        get(error, 'message', 'Internal Error'),
-        get(error, 'status', 500),
-      )
+      return statusCode.internalError
     }
   }
 
-  async upsertBrandType(
-    input: common.UpsertBrandTypeInput,
+  async upsertBrandInventory(
+    input: common.UpsertBrandInventoryInput,
     req: ICurrentUser,
-  ): Promise<common.ResponseBrand> {
-    const logctx = logContext(InventoryService, this.upsertBrandType)
+  ): Promise<common.MutationInventoryResponse> {
+    const logctx = logContext(InventoryService, this.upsertBrandInventory)
     const { id, name, description } = input
     const { shopsId, userName } = req
 
     this.loggers.debug({ input, req }, logctx)
 
     if (!name) {
-      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+      return statusCode.badRequest
     }
     try {
-      // const removeDel = await this.repos.brandType.findFirst({
-      //   where: {
-      //     shopsId,
-      //     name: name + '|' + shopsId,
-      //     deleted: true,
-      //   },
-      //   select: {
-      //     id: true,
-      //   },
-      // })
-      // this.loggers.debug({ removeDel }, logctx)
-      // if (removeDel) {
-      //   const updateDelete = await this.repos.brandType.update({
-      //     where: {
-      //       id: removeDel.id,
-      //     },
-      //     data: {
-      //       deleted: false,
-      //     },
-      //     select: {
-      //       id: true,
-      //     },
-      //   })
-      //   this.loggers.debug({ updateDelete }, logctx)
-
-      //   return { id: updateDelete.id }
-      // }
-
       const findDup = await this.repos.brandType.findFirst({
         where: {
           name: name + '|' + shopsId,
@@ -714,10 +619,10 @@ export class InventoryService implements OnModuleInit {
       })
       this.loggers.debug({ findDup }, logctx)
       if (!id && findDup) {
-        throw new HttpException('Duplicated Name', HttpStatus.BAD_REQUEST)
+        return statusCode.duplicated
       }
       if (id && findDup && id !== findDup.id) {
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+        return statusCode.badRequest
       }
 
       const result = await this.repos.brandType.upsert({
@@ -744,24 +649,18 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ result }, logctx)
-
-      return {
-        id: result.id,
-      }
+      return statusCode.success(result)
     } catch (error) {
       this.loggers.debug({ error }, logctx)
       this.loggers.error(error, `[MarchERR] upsertBrandType error`, logctx)
-      throw new HttpException(
-        get(error, 'message', 'Internal Error'),
-        get(error, 'status', 500),
-      )
+      return statusCode.internalError
     }
   }
 
   async favoriteInventory(
     id: string,
     req: ICurrentUser,
-  ): Promise<common.ResponseBrand> {
+  ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryService, this.favoriteInventory)
     this.loggers.debug({ req, id }, logctx)
     try {
@@ -776,7 +675,7 @@ export class InventoryService implements OnModuleInit {
       })
       this.loggers.debug({ checkShopId, req }, logctx)
       if (checkShopId.shopsId !== req.shopsId) {
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST)
+        return statusCode.forbidden
       }
       const result = await this.repos.inventory.update({
         where: {
@@ -790,13 +689,11 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ result }, logctx)
-      return result
+      return statusCode.success(result)
     } catch (error) {
       this.loggers.error(error, `[MarchERR] favoriteInventory error`, logctx)
-      throw new HttpException(
-        get(error, 'message', 'Internal Error'),
-        get(error, 'status', 500),
-      )
+
+      return statusCode.internalError
     }
   }
 

@@ -66,7 +66,7 @@ export class UploadInventoryInput {
     fileName?: string;
 }
 
-export class UpsertBrandTypeInput {
+export class UpsertBrandInventoryInput {
     id?: string;
     name: string;
     description?: string;
@@ -92,7 +92,7 @@ export class UpsertInventoryInput {
     updatedBy?: string;
 }
 
-export class UpsertInventoryTypeInput {
+export class UpsertTypeInventoryInput {
     id?: string;
     name: string;
     description?: string;
@@ -138,6 +138,11 @@ export class DeletedInventory {
     createdAt?: Date;
 }
 
+export class DeleteInventoryResponse {
+    data?: ResponseId;
+    status?: Status;
+}
+
 export class Inventory {
     id?: string;
     inventoryTypeId?: string;
@@ -178,21 +183,26 @@ export class InventoryType {
 export abstract class IMutation {
     abstract uploadInventory(input: UploadInventoryInput): UploadInventoryResponse | Promise<UploadInventoryResponse>;
 
-    abstract upsertInventory(input: UpsertInventoryInput): UpsertInventoryResponse | Promise<UpsertInventoryResponse>;
+    abstract upsertInventory(input: UpsertInventoryInput): MutationInventoryResponse | Promise<MutationInventoryResponse>;
 
-    abstract deleteInventory(id: string): ResponseInventory | Promise<ResponseInventory>;
+    abstract deleteInventory(id: string): MutationInventoryResponse | Promise<MutationInventoryResponse>;
 
-    abstract upsertInventoryType(input: UpsertInventoryTypeInput): ResponseInventory | Promise<ResponseInventory>;
+    abstract upsertTypeInventory(input: UpsertTypeInventoryInput): MutationInventoryResponse | Promise<MutationInventoryResponse>;
 
-    abstract deleteInventoryType(id: string): ResponseInventory | Promise<ResponseInventory>;
+    abstract deleteInventoryType(id: string): MutationInventoryResponse | Promise<MutationInventoryResponse>;
 
-    abstract upsertBrandType(input: UpsertBrandTypeInput): ResponseBrand | Promise<ResponseBrand>;
+    abstract upsertBrandInventory(input: UpsertBrandInventoryInput): MutationInventoryResponse | Promise<MutationInventoryResponse>;
 
-    abstract deleteBrandType(id: string): ResponseBrand | Promise<ResponseBrand>;
+    abstract deleteBrandType(id: string): MutationInventoryResponse | Promise<MutationInventoryResponse>;
 
-    abstract favoriteInventory(id: string): ResponseFavorite | Promise<ResponseFavorite>;
+    abstract favoriteInventory(id: string): MutationInventoryResponse | Promise<MutationInventoryResponse>;
 
     abstract recoveryHardDeleted(input: RecoveryHardDeletedInput): RecoveryHardDeleted | Promise<RecoveryHardDeleted>;
+}
+
+export class MutationInventoryResponse {
+    data?: ResponseId;
+    status?: Status;
 }
 
 export abstract class IQuery {
@@ -210,7 +220,7 @@ export abstract class IQuery {
 
     abstract getBrandType(id?: string): BrandType | Promise<BrandType>;
 
-    abstract getBrandTypes(params?: ParamsInventoryBrand): BrandType[] | Promise<BrandType[]>;
+    abstract getBrandTypes(params?: ParamsInventoryBrand): ResponseDataInventoryBrands | Promise<ResponseDataInventoryBrands>;
 
     abstract getInventoryAllDeleted(): ResponseDeletedInventory | Promise<ResponseDeletedInventory>;
 }
@@ -227,6 +237,11 @@ export class ResponseBrand {
 
 export class ResponseDataInventory {
     data?: Inventory;
+    status?: Status;
+}
+
+export class ResponseDataInventoryBrands {
+    data?: BrandType[];
     status?: Status;
 }
 
@@ -275,11 +290,6 @@ export class UploadInventoryResponse {
     id?: string;
     success?: boolean;
     reason?: string;
-}
-
-export class UpsertInventoryResponse {
-    data?: ResponseId;
-    status?: Status;
 }
 
 export type SortOrder = any;
