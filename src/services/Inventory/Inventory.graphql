@@ -14,6 +14,11 @@ enum DeletedMode {
   DELETE
 }
 
+type InventoryNameResponse {
+  data: [InventoryName]
+  status: Status
+}
+
 type InventoryName {
   id: String
   name: String
@@ -24,7 +29,12 @@ type Status {
   message: String
 }
 
-type InventoryType {
+type TypesInventoryResponse {
+  data: [TypeInventory]
+  status: Status
+}
+
+type TypeInventory {
   id: String
   name: String
   description: String
@@ -44,12 +54,12 @@ type BrandType {
   createdAt: Date
 }
 
-type ResponseDataInventoryBrands {
+type BrandsInventoryDataResponse {
   data: [BrandType]
   status: Status
 }
 
-type ResponseDataInventory {
+type InventoryDataResponse {
   data: Inventory
   status: Status
 }
@@ -67,7 +77,7 @@ type Inventory {
   reorderLevel: Int
   expiryDate: Date
   brandType: BrandType
-  inventoryType: InventoryType
+  inventoryType: TypeInventory
   favorite: Boolean
   description: String
   createdBy: String
@@ -160,6 +170,11 @@ input ParamsInventoryBrand {
   limit: Int
 }
 
+type InventoriesResponse {
+  data: ResponseInventories
+  status: Status
+}
+
 type ResponseInventories {
   inventories: [Inventory]
   pageLimit: Int
@@ -177,13 +192,18 @@ input UploadInventoryInput {
   fileName: String
 }
 
-type UploadInventoryResponse {
+type UploadInventory {
   id: String
   success: Boolean
   reason: String
 }
 
-type DeletedInventory {
+type UploadInventoryResponse {
+  data: UploadInventory
+  status: Status
+}
+
+type DeletedInventoryType {
   id: String
   name: String
   createdBy: String
@@ -192,10 +212,15 @@ type DeletedInventory {
   createdAt: Date
 }
 
-type ResponseDeletedInventory {
-  inventory: [DeletedInventory]
-  brand: [DeletedInventory]
-  type: [DeletedInventory]
+type DeletedInventoryResponse {
+  data: DeletedInventory
+  status: Status
+}
+
+type DeletedInventory {
+  inventory: [DeletedInventoryType]
+  brand: [DeletedInventoryType]
+  type: [DeletedInventoryType]
 }
 
 input RecoveryHardDeletedInput {
@@ -208,6 +233,11 @@ type RecoveryHardDeleted {
   id: String
   type: DeletedType
   mode: DeletedMode
+}
+
+type RecoveryHardDeletedResponse {
+  data: RecoveryHardDeleted
+  status: Status
 }
 
 type ResponseFileUploadNames {
@@ -246,24 +276,26 @@ type Mutation {
   upsertTypeInventory(
     input: UpsertTypeInventoryInput!
   ): MutationInventoryResponse
-  deleteInventoryType(id: String!): MutationInventoryResponse
+  deleteTypeInventory(id: String!): MutationInventoryResponse
   upsertBrandInventory(
     input: UpsertBrandInventoryInput!
   ): MutationInventoryResponse
-  deleteBrandType(id: String!): MutationInventoryResponse
+  deleteBrandInventory(id: String!): MutationInventoryResponse
   favoriteInventory(id: String!): MutationInventoryResponse
-  recoveryHardDeleted(input: RecoveryHardDeletedInput!): RecoveryHardDeleted
+  recoveryHardDeleted(
+    input: RecoveryHardDeletedInput!
+  ): RecoveryHardDeletedResponse
   # fileUpload(id: String!): ResponseGetUploadFile
 }
 
 type Query {
-  getInventoryNames: [InventoryName]
-  getInventory(id: String): ResponseDataInventory
-  getInventories(params: ParamsInventory): ResponseInventories
-  getInventoryType(id: String): InventoryType
-  getInventoryTypes(params: ParamsInventoryType): [InventoryType]
+  getInventoryNames: InventoryNameResponse
+  getInventory(id: String): InventoryDataResponse
+  getInventories(params: ParamsInventory): InventoriesResponse
+  getInventoryType(id: String): TypeInventory
+  getTypesInventory(params: ParamsInventoryType): TypesInventoryResponse
   getBrandType(id: String): BrandType
-  getBrandTypes(params: ParamsInventoryBrand): ResponseDataInventoryBrands
-  getInventoryAllDeleted: ResponseDeletedInventory
+  getBrandsInventory(params: ParamsInventoryBrand): BrandsInventoryDataResponse
+  getInventoryAllDeleted: DeletedInventoryResponse
   # getFileUploadNames: [ResponseFileUploadNames]
 }

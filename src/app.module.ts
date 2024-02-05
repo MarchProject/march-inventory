@@ -4,6 +4,7 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { ServicesModule } from './services/services.module'
 import { RedisModule } from '@nestjs-modules/ioredis'
+import { ScheduleModule } from '@nestjs/schedule'
 @Module({
   imports: [
     GraphQLModule.forRoot({
@@ -17,6 +18,7 @@ import { RedisModule } from '@nestjs-modules/ioredis'
         cdnUrl: 'https://cdn.jsdelivr.net/npm',
       },
       context: ({ req }) => ({ request: req }),
+
       // formatError: process.env.GRAPHQL_FORMAT_ERROR === 'true' ? gqlErrorFilter : undefined,
     }),
     // RedisModule.forRoot({
@@ -26,6 +28,7 @@ import { RedisModule } from '@nestjs-modules/ioredis'
     //   },
     // }),
     ServicesModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService],
