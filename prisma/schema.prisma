@@ -14,7 +14,7 @@ enum StatusFile {
   FAIL
 }
 
-model BrandType {
+model InventoryBrand {
   id String @id @default(uuid())
   name String @unique
   shopsId String @db.VarChar(40)
@@ -24,7 +24,7 @@ model BrandType {
   updatedBy String
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
-  inventory Inventory[] @relation("Inventory_BrandType")
+  inventory Inventory[] @relation("Inventory_InventoryBrand")
 }
 
 model InventoryType {
@@ -40,18 +40,34 @@ model InventoryType {
   inventory Inventory[] @relation("Inventory_InventoryType")
 }
 
+model InventoryBranch {
+  id String @id @default(uuid())
+  name String @unique
+  shopsId String @db.VarChar(40)
+  description String? @db.VarChar(300)
+  deleted Boolean @default(false)
+  createdBy String
+  updatedBy String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  inventory Inventory[] @relation("Inventory_InventoryBranch")
+}
+
 model Inventory {
   id String @id @default(uuid())
   name String @unique
-  InventoryTypeId String    @db.VarChar(40)
-  inventoryType   InventoryType @relation("Inventory_InventoryType", fields: [InventoryTypeId], references: [id])
-  BrandTypeId String    @db.VarChar(40)
-  brandType   BrandType @relation("Inventory_BrandType", fields: [BrandTypeId], references: [id])
+  inventoryTypeId String    @db.VarChar(40)
+  inventoryType   InventoryType @relation("Inventory_InventoryType", fields: [inventoryTypeId], references: [id])
+  inventoryBrandId String    @db.VarChar(40)
+  inventoryBrand   InventoryBrand @relation("Inventory_InventoryBrand", fields: [inventoryBrandId], references: [id])
+  inventoryBranchId String    @db.VarChar(40)
+  inventoryBranch   InventoryBranch @relation("Inventory_InventoryBranch", fields: [inventoryBranchId], references: [id])
   amount Int @default(0)
   price Int @default(0)
   priceMember Int? @default(0)
   size String?
   sku String?
+  serialNumber String?
   reorderLevel Int?
   sold Int @default(0)
   expiryDate DateTime? 
@@ -64,8 +80,8 @@ model Inventory {
   createdAt DateTime @default(now())
   favorite Boolean @default(false)
   csvId String?
-  InventoryFileId String?    @db.VarChar(40)
-  inventoryFile   InventoryFile? @relation("Inventory_InventoryFile", fields: [InventoryFileId], references: [id])
+  inventoryFileId String?    @db.VarChar(40)
+  inventoryFile   InventoryFile? @relation("Inventory_InventoryFile", fields: [inventoryFileId], references: [id])
   @@fulltext([name])
 }
 

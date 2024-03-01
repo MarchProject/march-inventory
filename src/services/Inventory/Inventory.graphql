@@ -6,7 +6,8 @@ enum FavoriteStatus {
 enum DeletedType {
   inventory
   inventoryType
-  brandType
+  inventoryBrand
+  inventoryBranch
 }
 
 enum DeletedMode {
@@ -29,12 +30,12 @@ type Status {
   message: String
 }
 
-type TypesInventoryResponse {
-  data: [TypeInventory]
+type InventoryTypesResponse {
+  data: [InventoryType]
   status: Status
 }
 
-type TypeInventory {
+type InventoryType {
   id: String
   name: String
   description: String
@@ -44,7 +45,16 @@ type TypeInventory {
   createdAt: Date
 }
 
-type BrandType {
+type InventoryBrand {
+  id: String
+  name: String
+  description: String
+  createdBy: String
+  updatedBy: String
+  updatedAt: Date
+  createdAt: Date
+}
+type InventoryBranch {
   id: String
   name: String
   description: String
@@ -54,8 +64,12 @@ type BrandType {
   createdAt: Date
 }
 
-type BrandsInventoryDataResponse {
-  data: [BrandType]
+type InventoryBrandsDataResponse {
+  data: [InventoryBrand]
+  status: Status
+}
+type InventoryBranchsDataResponse {
+  data: [InventoryBranch]
   status: Status
 }
 
@@ -71,13 +85,15 @@ type Inventory {
   amount: Int!
   sold: Int
   sku: String
+  serialNumber: String
   size: String
   priceMember: Int
   price: Int!
   reorderLevel: Int
   expiryDate: Date
-  brandType: BrandType
-  inventoryType: TypeInventory
+  inventoryBrand: InventoryBrand
+  inventoryBranch: InventoryBranch
+  inventoryType: InventoryType
   favorite: Boolean
   description: String
   createdBy: String
@@ -119,10 +135,12 @@ input UpsertInventoryInput {
   id: String
   name: String!
   inventoryTypeId: String!
-  brandTypeId: String!
+  inventoryBrandId: String!
+  inventoryBranchId: String!
   favorite: Boolean
   amount: Int!
   sku: String
+  serialNumber: String
   reorderLevel: Int
   size: SizeInventory
   price: Int!
@@ -133,7 +151,7 @@ input UpsertInventoryInput {
   updatedBy: String
 }
 
-input UpsertTypeInventoryInput {
+input UpsertInventoryTypeInput {
   id: String
   name: String!
   description: String
@@ -141,7 +159,15 @@ input UpsertTypeInventoryInput {
   updatedBy: String
 }
 
-input UpsertBrandInventoryInput {
+input UpsertInventoryBrandInput {
+  id: String
+  name: String!
+  description: String
+  createdBy: String
+  updatedBy: String
+}
+
+input UpsertInventoryBranchInput {
   id: String
   name: String!
   description: String
@@ -154,6 +180,7 @@ input ParamsInventory {
   favorite: FavoriteStatus
   type: [String]
   brand: [String]
+  branch: [String]
   pageNo: Int
   limit: Int
 }
@@ -165,6 +192,11 @@ input ParamsInventoryType {
 }
 
 input ParamsInventoryBrand {
+  search: String
+  offset: Int
+  limit: Int
+}
+input ParamsInventoryBranch {
   search: String
   offset: Int
   limit: Int
@@ -220,6 +252,7 @@ type DeletedInventoryResponse {
 type DeletedInventory {
   inventory: [DeletedInventoryType]
   brand: [DeletedInventoryType]
+  branch: [DeletedInventoryType]
   type: [DeletedInventoryType]
 }
 
@@ -273,14 +306,18 @@ type Mutation {
   uploadInventory(input: UploadInventoryInput!): UploadInventoryResponse
   upsertInventory(input: UpsertInventoryInput!): MutationInventoryResponse
   deleteInventory(id: String!): MutationInventoryResponse
-  upsertTypeInventory(
-    input: UpsertTypeInventoryInput!
+  upsertInventoryType(
+    input: UpsertInventoryTypeInput!
   ): MutationInventoryResponse
-  deleteTypeInventory(id: String!): MutationInventoryResponse
-  upsertBrandInventory(
-    input: UpsertBrandInventoryInput!
+  deleteInventoryType(id: String!): MutationInventoryResponse
+  upsertInventoryBrand(
+    input: UpsertInventoryBrandInput!
   ): MutationInventoryResponse
-  deleteBrandInventory(id: String!): MutationInventoryResponse
+  deleteInventoryBrand(id: String!): MutationInventoryResponse
+  upsertInventoryBranch(
+    input: UpsertInventoryBranchInput!
+  ): MutationInventoryResponse
+  deleteInventoryBranch(id: String!): MutationInventoryResponse
   favoriteInventory(id: String!): MutationInventoryResponse
   recoveryHardDeleted(
     input: RecoveryHardDeletedInput!
@@ -292,10 +329,13 @@ type Query {
   getInventoryNames: InventoryNameResponse
   getInventory(id: String): InventoryDataResponse
   getInventories(params: ParamsInventory): InventoriesResponse
-  getInventoryType(id: String): TypeInventory
-  getTypesInventory(params: ParamsInventoryType): TypesInventoryResponse
-  getBrandType(id: String): BrandType
-  getBrandsInventory(params: ParamsInventoryBrand): BrandsInventoryDataResponse
+  getInventoryType(id: String): InventoryType
+  getInventoryTypes(params: ParamsInventoryType): InventoryTypesResponse
+  getInventoryBrand(id: String): InventoryBrand
+  getInventoryBrands(params: ParamsInventoryBrand): InventoryBrandsDataResponse
+  getInventoryBranchs(
+    params: ParamsInventoryBranch
+  ): InventoryBranchsDataResponse
   getInventoryAllDeleted: DeletedInventoryResponse
   # getFileUploadNames: [ResponseFileUploadNames]
 }

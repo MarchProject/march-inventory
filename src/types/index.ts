@@ -15,7 +15,8 @@ export enum DeletedMode {
 export enum DeletedType {
     inventory = "inventory",
     inventoryType = "inventoryType",
-    brandType = "brandType"
+    inventoryBrand = "inventoryBrand",
+    inventoryBranch = "inventoryBranch"
 }
 
 export enum FavoriteStatus {
@@ -28,7 +29,14 @@ export class ParamsInventory {
     favorite?: FavoriteStatus;
     type?: string[];
     brand?: string[];
+    branch?: string[];
     pageNo?: number;
+    limit?: number;
+}
+
+export class ParamsInventoryBranch {
+    search?: string;
+    offset?: number;
     limit?: number;
 }
 
@@ -66,7 +74,15 @@ export class UploadInventoryInput {
     fileName?: string;
 }
 
-export class UpsertBrandInventoryInput {
+export class UpsertInventoryBranchInput {
+    id?: string;
+    name: string;
+    description?: string;
+    createdBy?: string;
+    updatedBy?: string;
+}
+
+export class UpsertInventoryBrandInput {
     id?: string;
     name: string;
     description?: string;
@@ -78,10 +94,12 @@ export class UpsertInventoryInput {
     id?: string;
     name: string;
     inventoryTypeId: string;
-    brandTypeId: string;
+    inventoryBrandId: string;
+    inventoryBranchId: string;
     favorite?: boolean;
     amount: number;
     sku?: string;
+    serialNumber?: string;
     reorderLevel?: number;
     size?: SizeInventory;
     price: number;
@@ -92,27 +110,12 @@ export class UpsertInventoryInput {
     updatedBy?: string;
 }
 
-export class UpsertTypeInventoryInput {
+export class UpsertInventoryTypeInput {
     id?: string;
     name: string;
     description?: string;
     createdBy?: string;
     updatedBy?: string;
-}
-
-export class BrandsInventoryDataResponse {
-    data?: BrandType[];
-    status?: Status;
-}
-
-export class BrandType {
-    id?: string;
-    name?: string;
-    description?: string;
-    createdBy?: string;
-    updatedBy?: string;
-    updatedAt?: Date;
-    createdAt?: Date;
 }
 
 export class DataUploadFile {
@@ -137,6 +140,7 @@ export class DataUploadFile {
 export class DeletedInventory {
     inventory?: DeletedInventoryType[];
     brand?: DeletedInventoryType[];
+    branch?: DeletedInventoryType[];
     type?: DeletedInventoryType[];
 }
 
@@ -171,19 +175,51 @@ export class Inventory {
     amount: number;
     sold?: number;
     sku?: string;
+    serialNumber?: string;
     size?: string;
     priceMember?: number;
     price: number;
     reorderLevel?: number;
     expiryDate?: Date;
-    brandType?: BrandType;
-    inventoryType?: TypeInventory;
+    inventoryBrand?: InventoryBrand;
+    inventoryBranch?: InventoryBranch;
+    inventoryType?: InventoryType;
     favorite?: boolean;
     description?: string;
     createdBy?: string;
     updatedBy?: string;
     updatedAt?: Date;
     createdAt?: Date;
+}
+
+export class InventoryBranch {
+    id?: string;
+    name?: string;
+    description?: string;
+    createdBy?: string;
+    updatedBy?: string;
+    updatedAt?: Date;
+    createdAt?: Date;
+}
+
+export class InventoryBranchsDataResponse {
+    data?: InventoryBranch[];
+    status?: Status;
+}
+
+export class InventoryBrand {
+    id?: string;
+    name?: string;
+    description?: string;
+    createdBy?: string;
+    updatedBy?: string;
+    updatedAt?: Date;
+    createdAt?: Date;
+}
+
+export class InventoryBrandsDataResponse {
+    data?: InventoryBrand[];
+    status?: Status;
 }
 
 export class InventoryDataResponse {
@@ -201,6 +237,21 @@ export class InventoryNameResponse {
     status?: Status;
 }
 
+export class InventoryType {
+    id?: string;
+    name?: string;
+    description?: string;
+    createdBy?: string;
+    updatedBy?: string;
+    updatedAt?: Date;
+    createdAt?: Date;
+}
+
+export class InventoryTypesResponse {
+    data?: InventoryType[];
+    status?: Status;
+}
+
 export abstract class IMutation {
     abstract uploadInventory(input: UploadInventoryInput): UploadInventoryResponse | Promise<UploadInventoryResponse>;
 
@@ -208,13 +259,17 @@ export abstract class IMutation {
 
     abstract deleteInventory(id: string): MutationInventoryResponse | Promise<MutationInventoryResponse>;
 
-    abstract upsertTypeInventory(input: UpsertTypeInventoryInput): MutationInventoryResponse | Promise<MutationInventoryResponse>;
+    abstract upsertInventoryType(input: UpsertInventoryTypeInput): MutationInventoryResponse | Promise<MutationInventoryResponse>;
 
-    abstract deleteTypeInventory(id: string): MutationInventoryResponse | Promise<MutationInventoryResponse>;
+    abstract deleteInventoryType(id: string): MutationInventoryResponse | Promise<MutationInventoryResponse>;
 
-    abstract upsertBrandInventory(input: UpsertBrandInventoryInput): MutationInventoryResponse | Promise<MutationInventoryResponse>;
+    abstract upsertInventoryBrand(input: UpsertInventoryBrandInput): MutationInventoryResponse | Promise<MutationInventoryResponse>;
 
-    abstract deleteBrandInventory(id: string): MutationInventoryResponse | Promise<MutationInventoryResponse>;
+    abstract deleteInventoryBrand(id: string): MutationInventoryResponse | Promise<MutationInventoryResponse>;
+
+    abstract upsertInventoryBranch(input: UpsertInventoryBranchInput): MutationInventoryResponse | Promise<MutationInventoryResponse>;
+
+    abstract deleteInventoryBranch(id: string): MutationInventoryResponse | Promise<MutationInventoryResponse>;
 
     abstract favoriteInventory(id: string): MutationInventoryResponse | Promise<MutationInventoryResponse>;
 
@@ -235,13 +290,15 @@ export abstract class IQuery {
 
     abstract getInventories(params?: ParamsInventory): InventoriesResponse | Promise<InventoriesResponse>;
 
-    abstract getInventoryType(id?: string): TypeInventory | Promise<TypeInventory>;
+    abstract getInventoryType(id?: string): InventoryType | Promise<InventoryType>;
 
-    abstract getTypesInventory(params?: ParamsInventoryType): TypesInventoryResponse | Promise<TypesInventoryResponse>;
+    abstract getInventoryTypes(params?: ParamsInventoryType): InventoryTypesResponse | Promise<InventoryTypesResponse>;
 
-    abstract getBrandType(id?: string): BrandType | Promise<BrandType>;
+    abstract getInventoryBrand(id?: string): InventoryBrand | Promise<InventoryBrand>;
 
-    abstract getBrandsInventory(params?: ParamsInventoryBrand): BrandsInventoryDataResponse | Promise<BrandsInventoryDataResponse>;
+    abstract getInventoryBrands(params?: ParamsInventoryBrand): InventoryBrandsDataResponse | Promise<InventoryBrandsDataResponse>;
+
+    abstract getInventoryBranchs(params?: ParamsInventoryBranch): InventoryBranchsDataResponse | Promise<InventoryBranchsDataResponse>;
 
     abstract getInventoryAllDeleted(): DeletedInventoryResponse | Promise<DeletedInventoryResponse>;
 }
@@ -294,21 +351,6 @@ export class ResponseInventory {
 export class Status {
     code: number;
     message?: string;
-}
-
-export class TypeInventory {
-    id?: string;
-    name?: string;
-    description?: string;
-    createdBy?: string;
-    updatedBy?: string;
-    updatedAt?: Date;
-    createdAt?: Date;
-}
-
-export class TypesInventoryResponse {
-    data?: TypeInventory[];
-    status?: Status;
 }
 
 export class UploadInventory {

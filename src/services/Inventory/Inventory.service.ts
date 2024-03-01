@@ -13,8 +13,7 @@ import { ICurrentUser } from 'src/common/helpers/user'
 import { Constant, mapFunction, statusCode, dayjs } from '@march/core'
 import { get, isNil } from 'lodash'
 import { tranfromUploadCsv } from './inventory.dto'
-import { Cron, Interval, CronExpression } from '@nestjs/schedule'
-import { BrandType } from 'src/types'
+import { Cron, CronExpression } from '@nestjs/schedule'
 
 @Injectable()
 export class InventoryService implements OnModuleInit {
@@ -53,31 +52,49 @@ export class InventoryService implements OnModuleInit {
     req: ICurrentUser,
   ): Promise<common.InventoriesResponse> {
     const logctx = logContext(InventoryService, this.getInventories)
-    const { search, limit, pageNo, type, brand, favorite } = params
+    const { search, limit, pageNo, type, brand, branch, favorite } = params
     const { shopsId, userId } = req
     const _pageNo = pageNo ?? 1
     const offset = _pageNo * limit - limit ?? undefined
     const skip = offset ?? 0
     const brandIds = mapFunction(brand, 'id')
     const typeIds = mapFunction(type, 'id')
+    const branchIds = mapFunction(branch, 'id')
     this.loggers.debug(
-      { _pageNo, offset, skip, search, userId, shopsId, brandIds, typeIds },
+      {
+        _pageNo,
+        offset,
+        skip,
+        search,
+        userId,
+        shopsId,
+        brandIds,
+        branchIds,
+        typeIds,
+      },
       logctx,
     )
     const whereCondition = {
       deleted: false,
-      name: { contains: `%${search}%|%` },
+      name: search.startsWith('#') ? {} : { contains: `%${search}%|%` },
       favorite: favorite === common.FavoriteStatus.LIKE ? true : undefined,
+      serialNumber: search.startsWith('#') ? { contains: search } : {},
       inventoryType:
         typeIds.length > 0
           ? {
               OR: typeIds,
             }
           : {},
-      brandType:
+      inventoryBrand:
         brandIds.length > 0
           ? {
               OR: brandIds,
+            }
+          : {},
+      inventoryBranch:
+        branchIds.length > 0
+          ? {
+              OR: branchIds,
             }
           : {},
       shopsId,
@@ -96,13 +113,19 @@ export class InventoryService implements OnModuleInit {
           createdAt: 'desc',
         },
         include: {
-          brandType: {
+          inventoryBrand: {
             select: {
               id: true,
               name: true,
             },
           },
           inventoryType: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          inventoryBranch: {
             select: {
               id: true,
               name: true,
@@ -141,13 +164,19 @@ export class InventoryService implements OnModuleInit {
           id,
         },
         include: {
-          brandType: {
+          inventoryBrand: {
             select: {
               id: true,
               name: true,
             },
           },
           inventoryType: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          inventoryBranch: {
             select: {
               id: true,
               name: true,
@@ -168,11 +197,11 @@ export class InventoryService implements OnModuleInit {
     }
   }
 
-  async getTypesInventory(
+  async getInventoryTypes(
     req: ICurrentUser,
     params: common.ParamsInventoryType,
-  ): Promise<common.TypesInventoryResponse> {
-    const logctx = logContext(InventoryService, this.getTypesInventory)
+  ): Promise<common.InventoryTypesResponse> {
+    const logctx = logContext(InventoryService, this.getInventoryTypes)
     try {
       const { search, limit, offset } = params
       this.loggers.debug({ params }, logctx)
@@ -200,7 +229,7 @@ export class InventoryService implements OnModuleInit {
   async getInventoryType(
     id: string,
     req: ICurrentUser,
-  ): Promise<common.TypeInventory> {
+  ): Promise<common.InventoryType> {
     const logctx = logContext(InventoryService, this.getInventoryType)
     this.loggers.debug({ id, req }, logctx)
     try {
@@ -222,15 +251,15 @@ export class InventoryService implements OnModuleInit {
     }
   }
 
-  async getBrandsInventory(
+  async getInventoryBrands(
     req: ICurrentUser,
     params: common.ParamsInventoryBrand,
-  ): Promise<common.BrandsInventoryDataResponse> {
-    const logctx = logContext(InventoryService, this.getBrandsInventory)
+  ): Promise<common.InventoryBrandsDataResponse> {
+    const logctx = logContext(InventoryService, this.getInventoryBrands)
     try {
       const { search, limit, offset } = params
       this.loggers.debug({ params }, logctx)
-      const result = await this.repos.brandType.findMany({
+      const result = await this.repos.inventoryBrand.findMany({
         where: {
           name: {
             contains: `%${search}%|%`,
@@ -251,14 +280,14 @@ export class InventoryService implements OnModuleInit {
     }
   }
 
-  async getBrandType(
+  async getInventoryBrand(
     id: string,
     req: ICurrentUser,
-  ): Promise<common.TypeInventory> {
-    const logctx = logContext(InventoryService, this.getBrandType)
+  ): Promise<common.InventoryType> {
+    const logctx = logContext(InventoryService, this.getInventoryBrand)
     this.loggers.debug({ id, req }, logctx)
     try {
-      const result = await this.repos.brandType.findUnique({
+      const result = await this.repos.inventoryBrand.findUnique({
         where: {
           id,
         },
@@ -270,8 +299,37 @@ export class InventoryService implements OnModuleInit {
       this.loggers.debug({ result }, logctx)
       return result
     } catch (error) {
-      this.loggers.error(error, `[MarchERR] getBrandType error`, logctx)
+      this.loggers.error(error, `[MarchERR] getInventoryBrand error`, logctx)
       throw new HttpException('Internal Error', 500)
+    }
+  }
+
+  async getInventoryBranchs(
+    req: ICurrentUser,
+    params: common.ParamsInventoryBrand,
+  ): Promise<common.InventoryBranchsDataResponse> {
+    const logctx = logContext(InventoryService, this.getInventoryBranchs)
+    try {
+      const { search, limit, offset } = params
+      this.loggers.debug({ params }, logctx)
+      const result = await this.repos.inventoryBranch.findMany({
+        where: {
+          name: {
+            contains: `%${search}%|%`,
+          },
+          deleted: false,
+          shopsId: req.shopsId,
+        },
+        skip: offset,
+        take: limit,
+      })
+      this.loggers.debug({ result }, logctx)
+
+      return statusCode.success(result)
+    } catch (error) {
+      this.loggers.error(error, `[MarchERR] getBranchsInventory error`, logctx)
+
+      return statusCode.internalError(error?.message)
     }
   }
 
@@ -313,11 +371,11 @@ export class InventoryService implements OnModuleInit {
       return statusCode.internalError(error?.message)
     }
   }
-  async deleteTypeInventory(
+  async deleteInventoryType(
     id: string,
     req: ICurrentUser,
   ): Promise<common.MutationInventoryResponse> {
-    const logctx = logContext(InventoryService, this.deleteTypeInventory)
+    const logctx = logContext(InventoryService, this.deleteInventoryType)
     this.loggers.debug({ req, id }, logctx)
     try {
       const checkShopId = await this.repos.inventoryType.findUnique({
@@ -335,7 +393,7 @@ export class InventoryService implements OnModuleInit {
       }
       const type = await this.repos.inventory.findMany({
         where: {
-          InventoryTypeId: id,
+          inventoryTypeId: id,
         },
       })
       this.loggers.debug({ type }, logctx)
@@ -361,14 +419,15 @@ export class InventoryService implements OnModuleInit {
       return statusCode.internalError(error?.message)
     }
   }
-  async deleteBrandInventory(
+
+  async deleteInventoryBrand(
     id: string,
     req: ICurrentUser,
   ): Promise<common.MutationInventoryResponse> {
-    const logctx = logContext(InventoryService, this.deleteBrandInventory)
+    const logctx = logContext(InventoryService, this.deleteInventoryBrand)
     this.loggers.debug({ id, req }, logctx)
     try {
-      const checkShopId = await this.repos.brandType.findUnique({
+      const checkShopId = await this.repos.inventoryBrand.findUnique({
         where: {
           id,
         },
@@ -382,14 +441,14 @@ export class InventoryService implements OnModuleInit {
       }
       const type = await this.repos.inventory.findMany({
         where: {
-          BrandTypeId: id,
+          inventoryBrandId: id,
         },
       })
       if (type.length > 0) {
         this.loggers.debug('type.length > 0', logctx)
         return statusCode.onUse
       }
-      const result = await this.repos.brandType.update({
+      const result = await this.repos.inventoryBrand.update({
         where: {
           id,
         },
@@ -404,6 +463,57 @@ export class InventoryService implements OnModuleInit {
       return statusCode.success(result)
     } catch (error) {
       this.loggers.error(error, `[MarchERR] deleteBrandInventory error`, logctx)
+      return statusCode.internalError(error?.message)
+    }
+  }
+
+  async deleteInventoryBranch(
+    id: string,
+    req: ICurrentUser,
+  ): Promise<common.MutationInventoryResponse> {
+    const logctx = logContext(InventoryService, this.deleteInventoryBranch)
+    this.loggers.debug({ id, req }, logctx)
+    try {
+      const checkShopId = await this.repos.inventoryBranch.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          shopsId: true,
+        },
+      })
+      if (checkShopId.shopsId !== req.shopsId) {
+        this.loggers.debug('req.shopsId !== result.shopsId:371', logctx)
+        return statusCode.forbidden('Unauthorized ShopId')
+      }
+      const type = await this.repos.inventory.findMany({
+        where: {
+          inventoryBranchId: id,
+        },
+      })
+      if (type.length > 0) {
+        this.loggers.debug('type.length > 0', logctx)
+        return statusCode.onUse
+      }
+      const result = await this.repos.inventoryBranch.update({
+        where: {
+          id,
+        },
+        data: {
+          deleted: true,
+        },
+        select: {
+          id: true,
+        },
+      })
+      this.loggers.debug({ result }, logctx)
+      return statusCode.success(result)
+    } catch (error) {
+      this.loggers.error(
+        error,
+        `[MarchERR] deleteBranchInventory error`,
+        logctx,
+      )
       return statusCode.internalError(error?.message)
     }
   }
@@ -428,7 +538,9 @@ export class InventoryService implements OnModuleInit {
       description,
       expiryDate,
       inventoryTypeId,
-      brandTypeId,
+      inventoryBrandId,
+      inventoryBranchId,
+      serialNumber,
       createdBy,
     } = input
     try {
@@ -440,18 +552,31 @@ export class InventoryService implements OnModuleInit {
           shopsId: true,
         },
       })
-      const checkBrandType = await this.repos.brandType.findUnique({
+      const checkInventoryBrand = await this.repos.inventoryBrand.findUnique({
         where: {
-          id: brandTypeId,
+          id: inventoryBrandId,
         },
         select: {
           shopsId: true,
         },
       })
-      this.loggers.debug({ checkBrandType, checkInventoryType }, logctx)
+      const checkInventoryBranch = await this.repos.inventoryBranch.findUnique({
+        where: {
+          id: inventoryBranchId,
+        },
+        select: {
+          id: true,
+          shopsId: true,
+        },
+      })
+      this.loggers.debug(
+        { checkInventoryBrand, checkInventoryType, checkInventoryBranch },
+        logctx,
+      )
       if (
         checkInventoryType.shopsId !== shopsId ||
-        checkBrandType.shopsId !== shopsId
+        checkInventoryBrand.shopsId !== shopsId ||
+        checkInventoryBranch.shopsId !== shopsId
       ) {
         this.loggers.debug('checkInventoryType.shopsId !== shopsId', logctx)
         return statusCode.forbidden('Unauthorized ShopId')
@@ -459,7 +584,7 @@ export class InventoryService implements OnModuleInit {
 
       const findDup = await this.repos.inventory.findFirst({
         where: {
-          name: name + '|' + shopsId,
+          name: name + '|' + checkInventoryBranch.id + '|' + shopsId,
           shopsId,
         },
         select: {
@@ -471,8 +596,11 @@ export class InventoryService implements OnModuleInit {
       if (!id && findDup) {
         return statusCode.duplicated
       }
+      // if (id && findDup && id === findDup.id) {
+      //   return statusCode.badRequest('2')
+      // }
       if (id && findDup && id !== findDup.id) {
-        return statusCode.badRequest('')
+        return statusCode.badRequest('1') // dup branch + name
       }
       const width = get(size, 'width', '0')
       const length = get(size, 'length', '0')
@@ -484,14 +612,16 @@ export class InventoryService implements OnModuleInit {
           id: id || uuidv4(),
         },
         create: {
-          name: name + '|' + shopsId,
+          name: name + '|' + checkInventoryBranch.id + '|' + shopsId,
           amount,
-          InventoryTypeId: inventoryTypeId,
-          BrandTypeId: brandTypeId,
+          inventoryTypeId: inventoryTypeId,
+          inventoryBrandId: inventoryBrandId,
+          inventoryBranchId: inventoryBranchId,
           price,
           priceMember,
           reorderLevel,
           sku,
+          serialNumber,
           favorite,
           size: _size,
           expiryDate,
@@ -506,15 +636,17 @@ export class InventoryService implements OnModuleInit {
         },
         update: {
           id,
-          name: name + '|' + shopsId,
+          name: name + '|' + checkInventoryBranch.id + '|' + shopsId,
           amount,
-          InventoryTypeId: inventoryTypeId,
-          BrandTypeId: brandTypeId,
+          inventoryTypeId: inventoryTypeId,
+          inventoryBrandId: inventoryBrandId,
+          inventoryBranchId: inventoryBranchId,
           price,
           favorite,
           priceMember,
           reorderLevel,
           sku,
+          serialNumber,
           size: _size,
           expiryDate,
           shopsId,
@@ -534,7 +666,7 @@ export class InventoryService implements OnModuleInit {
   }
 
   async upsertInventoryType(
-    input: common.UpsertTypeInventoryInput,
+    input: common.UpsertInventoryTypeInput,
     req: ICurrentUser,
   ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryService, this.upsertInventoryType)
@@ -595,11 +727,11 @@ export class InventoryService implements OnModuleInit {
     }
   }
 
-  async upsertBrandInventory(
-    input: common.UpsertBrandInventoryInput,
+  async upsertInventoryBrand(
+    input: common.UpsertInventoryBrandInput,
     req: ICurrentUser,
   ): Promise<common.MutationInventoryResponse> {
-    const logctx = logContext(InventoryService, this.upsertBrandInventory)
+    const logctx = logContext(InventoryService, this.upsertInventoryBrand)
     const { id, name, description } = input
     const { shopsId, userName } = req
 
@@ -609,7 +741,7 @@ export class InventoryService implements OnModuleInit {
       return statusCode.badRequest('name is required')
     }
     try {
-      const findDup = await this.repos.brandType.findFirst({
+      const findDup = await this.repos.inventoryBrand.findFirst({
         where: {
           name: name + '|' + shopsId,
           shopsId,
@@ -626,7 +758,7 @@ export class InventoryService implements OnModuleInit {
         return statusCode.badRequest('')
       }
 
-      const result = await this.repos.brandType.upsert({
+      const result = await this.repos.inventoryBrand.upsert({
         where: {
           id: id || uuidv4(),
         },
@@ -653,7 +785,70 @@ export class InventoryService implements OnModuleInit {
       return statusCode.success(result)
     } catch (error) {
       this.loggers.debug({ error }, logctx)
-      this.loggers.error(error, `[MarchERR] upsertBrandType error`, logctx)
+      this.loggers.error(error, `[MarchERR] upsertInventoryBrand error`, logctx)
+      return statusCode.internalError(error?.message)
+    }
+  }
+
+  async upsertInventoryBranch(
+    input: common.UpsertInventoryBranchInput,
+    req: ICurrentUser,
+  ): Promise<common.MutationInventoryResponse> {
+    const logctx = logContext(InventoryService, this.upsertInventoryBranch)
+    const { id, name, description } = input
+    const { shopsId, userName } = req
+
+    this.loggers.debug({ input, req }, logctx)
+
+    if (!name) {
+      return statusCode.badRequest('name is required')
+    }
+    try {
+      const findDup = await this.repos.inventoryBranch.findFirst({
+        where: {
+          name: name + '|' + shopsId,
+          shopsId,
+        },
+        select: {
+          id: true,
+        },
+      })
+      this.loggers.debug({ findDup }, logctx)
+      if (!id && findDup) {
+        return statusCode.duplicated
+      }
+      if (id && findDup && id !== findDup.id) {
+        return statusCode.badRequest('')
+      }
+
+      const result = await this.repos.inventoryBranch.upsert({
+        where: {
+          id: id || uuidv4(),
+        },
+        create: {
+          shopsId,
+          name: name + '|' + shopsId,
+          description,
+          deleted: false,
+          createdBy: userName,
+          updatedBy: userName,
+        },
+        select: {
+          id: true,
+        },
+        update: {
+          id,
+          name: name + '|' + shopsId,
+          description,
+          deleted: false,
+          updatedBy: userName,
+        },
+      })
+      this.loggers.debug({ result }, logctx)
+      return statusCode.success(result)
+    } catch (error) {
+      this.loggers.debug({ error }, logctx)
+      this.loggers.error(error, `[MarchERR] upsertBranchType error`, logctx)
       return statusCode.internalError(error?.message)
     }
   }
@@ -753,7 +948,7 @@ export class InventoryService implements OnModuleInit {
         if (uploadFiles.count !== datasTranFrom.length) {
           await this.repos.inventory.deleteMany({
             where: {
-              InventoryFileId: createFile.id,
+              inventoryFileId: createFile.id,
             },
           })
           await this.repos.inventoryFile.delete({
@@ -778,7 +973,7 @@ export class InventoryService implements OnModuleInit {
 
         await this.repos.inventory.deleteMany({
           where: {
-            InventoryFileId: createFile.id,
+            inventoryFileId: createFile.id,
           },
         })
         await this.repos.inventoryFile.delete({
@@ -841,7 +1036,7 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ typeDeleted }, logctx)
-      const brandDeleted = await this.repos.brandType.findMany({
+      const brandDeleted = await this.repos.inventoryBrand.findMany({
         where: {
           shopsId: shopsId,
           deleted: true,
@@ -859,10 +1054,29 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ brandDeleted }, logctx)
+      const branchDeleted = await this.repos.inventoryBranch.findMany({
+        where: {
+          shopsId: shopsId,
+          deleted: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          updatedAt: true,
+          updatedBy: true,
+          createdAt: true,
+          createdBy: true,
+        },
+        orderBy: {
+          updatedAt: 'desc',
+        },
+      })
+      this.loggers.debug({ branchDeleted }, logctx)
       return statusCode.success({
         inventory: inventoryDeleted,
         type: typeDeleted,
         brand: brandDeleted,
+        branch: branchDeleted,
       })
     } catch (error) {
       this.loggers.error(
@@ -971,7 +1185,7 @@ export class InventoryService implements OnModuleInit {
   @Cron(CronExpression.EVERY_10_MINUTES, { timeZone: Constant.timezone })
   async RemoveTrash() {
     const logctx = logContext(InventoryService, this.RemoveTrash)
-    const reposes = ['brandType', 'inventoryType', 'inventory']
+    const reposes = ['inventoryBrand', 'inventoryType', 'inventory']
     try {
       for (const repo of reposes) {
         const deletedBrand = await this.repos[repo].findMany({

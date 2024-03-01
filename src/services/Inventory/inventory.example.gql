@@ -17,7 +17,7 @@ mutation upsertInventory {
       description: "20kg"
       createdBy: "System"
       inventoryTypeId: "8918abd5-734f-42ab-98e1-07d2640e255f"
-      brandTypeId: "e52bcd56-78fe-4dcb-bb5f-00dab03bb73e"
+      inventoryBrandId: "e52bcd56-78fe-4dcb-bb5f-00dab03bb73e"
       expiryDate: "2023-05-20T00:00:00.000+07:00"
     }
   ) {
@@ -38,7 +38,7 @@ query getInventories {
       inventoryType {
         name
       }
-      brandType {
+      inventoryBrand {
         name
       }
       description
@@ -91,8 +91,8 @@ query getInventoryType {
   }
 }
 
-query getBrandTypes {
-  getBrandTypes(params: { search: "K", offset: 0, limit: 20 }) {
+query getInventoryBrands {
+  getInventoryBrands(params: { search: "K", offset: 0, limit: 20 }) {
     id
     name
     description
@@ -103,8 +103,8 @@ query getBrandTypes {
   }
 }
 
-query getBrandType {
-  getBrandType(id: "530d26db-a57a-42c9-9a06-b39bb20d2540") {
+query getInventoryBrand {
+  getInventoryBrand(id: "530d26db-a57a-42c9-9a06-b39bb20d2540") {
     id
     name
     description
@@ -128,16 +128,16 @@ mutation upsertInventoryType {
   }
 }
 
-mutation upsertBrandType {
-  upsertBrandType(
+mutation upsertgetInventoryBrand {
+  getInventoryBrand(
     input: { id: "", name: "Hills", description: "Cat", createdBy: "system" }
   ) {
     id
   }
 }
 
-mutation deleteBrandType {
-  deleteBrandType(id: "e52bcd56-78fe-4dcb-bb5f-00dab03bb73e") {
+mutation deleteInventoryBrand {
+  deleteInventoryBrand(id: "e52bcd56-78fe-4dcb-bb5f-00dab03bb73e") {
     id
   }
 }

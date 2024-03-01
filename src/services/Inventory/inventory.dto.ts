@@ -5,7 +5,7 @@ export const tranfromUploadCsv = (
   datas: UpsertInventoryInput[],
   shopsId: string,
   userName: string,
-  InventoryFileId: string,
+  inventoryFileId: string,
 ) => {
   const result = datas.map((data) => {
     const {
@@ -13,7 +13,9 @@ export const tranfromUploadCsv = (
       name,
       amount,
       inventoryTypeId,
-      brandTypeId,
+      inventoryBrandId,
+      inventoryBranchId,
+      serialNumber,
       price,
       priceMember,
       reorderLevel,
@@ -30,14 +32,16 @@ export const tranfromUploadCsv = (
     const weight = get(size, 'weight', '0')
     const _size = `${width}|${length}|${height}|${weight}`
     return {
-      name: name + '|' + shopsId,
+      name: name + '|' + inventoryBranchId + '|' + shopsId,
       amount,
-      InventoryTypeId: inventoryTypeId,
-      BrandTypeId: brandTypeId,
+      inventoryTypeId,
+      inventoryBrandId,
+      inventoryBranchId,
       price,
       priceMember,
       reorderLevel,
       sku,
+      serialNumber,
       favorite,
       size: _size,
       expiryDate,
@@ -47,7 +51,7 @@ export const tranfromUploadCsv = (
       createdBy: userName,
       updatedBy: userName,
       csvId: id,
-      InventoryFileId,
+      inventoryFileId,
     }
   })
   return result
