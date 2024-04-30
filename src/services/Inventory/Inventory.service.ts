@@ -43,7 +43,7 @@ export class InventoryService implements OnModuleInit {
       return statusCode.success(result)
     } catch (error) {
       this.loggers.error(error, `[MarchERR] getInventoryNames error`, logctx)
-      return statusCode.internalError(error?.message)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -193,7 +193,7 @@ export class InventoryService implements OnModuleInit {
       return statusCode.success(result)
     } catch (error) {
       this.loggers.error(error, `[MarchERR] getInventories error`, logctx)
-      return statusCode.internalError(error?.message)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -222,7 +222,7 @@ export class InventoryService implements OnModuleInit {
       return statusCode.success(result)
     } catch (error) {
       this.loggers.error(error, `[MarchERR] getTypesInventory error`, logctx)
-      return statusCode.internalError(error?.message)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -276,7 +276,7 @@ export class InventoryService implements OnModuleInit {
     } catch (error) {
       this.loggers.error(error, `[MarchERR] getBrandsInventory error`, logctx)
 
-      return statusCode.internalError(error?.message)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -329,7 +329,7 @@ export class InventoryService implements OnModuleInit {
     } catch (error) {
       this.loggers.error(error, `[MarchERR] getBranchsInventory error`, logctx)
 
-      return statusCode.internalError(error?.message)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -368,7 +368,7 @@ export class InventoryService implements OnModuleInit {
       return statusCode.success(result)
     } catch (error) {
       this.loggers.error(error, `[MarchERR] deleteInventory error`, logctx)
-      return statusCode.internalError(error?.message)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
   async deleteInventoryType(
@@ -416,7 +416,7 @@ export class InventoryService implements OnModuleInit {
       return statusCode.success(result)
     } catch (error) {
       this.loggers.error(error, `[MarchERR] deleteTypeInventory error`, logctx)
-      return statusCode.internalError(error?.message)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -463,7 +463,7 @@ export class InventoryService implements OnModuleInit {
       return statusCode.success(result)
     } catch (error) {
       this.loggers.error(error, `[MarchERR] deleteBrandInventory error`, logctx)
-      return statusCode.internalError(error?.message)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -514,7 +514,7 @@ export class InventoryService implements OnModuleInit {
         `[MarchERR] deleteBranchInventory error`,
         logctx,
       )
-      return statusCode.internalError(error?.message)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -661,7 +661,7 @@ export class InventoryService implements OnModuleInit {
     } catch (error) {
       this.loggers.debug({ error }, logctx)
       this.loggers.error(error, `[MarchERR] upsertInventory error`, logctx)
-      return statusCode.internalError(error?.message)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -723,7 +723,7 @@ export class InventoryService implements OnModuleInit {
     } catch (error) {
       this.loggers.debug({ error }, logctx)
       this.loggers.error(error, `[MarchERR] upsertInventoryType error`, logctx)
-      return statusCode.internalError(error?.message)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -786,7 +786,7 @@ export class InventoryService implements OnModuleInit {
     } catch (error) {
       this.loggers.debug({ error }, logctx)
       this.loggers.error(error, `[MarchERR] upsertInventoryBrand error`, logctx)
-      return statusCode.internalError(error?.message)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -849,7 +849,7 @@ export class InventoryService implements OnModuleInit {
     } catch (error) {
       this.loggers.debug({ error }, logctx)
       this.loggers.error(error, `[MarchERR] upsertBranchType error`, logctx)
-      return statusCode.internalError(error?.message)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -889,7 +889,7 @@ export class InventoryService implements OnModuleInit {
     } catch (error) {
       this.loggers.error(error, `[MarchERR] favoriteInventory error`, logctx)
 
-      return statusCode.internalError(error?.message)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -913,7 +913,8 @@ export class InventoryService implements OnModuleInit {
         return statusCode.success({
           id: '',
           success: false,
-          reason: 'Duplicated Filename. Upload again.',
+          reason: 'duplicated',
+          //'Duplicated Filename. Upload again.'
         })
       }
       const createFile = await this.repos.inventoryFile.create({
@@ -959,8 +960,8 @@ export class InventoryService implements OnModuleInit {
           return statusCode.success({
             id: '',
             success: false,
-            reason:
-              'maybe some item lost or duplicated. Please upload csv again.',
+            reason: 'lost',
+            // 'maybe some item lost or duplicated. Please upload csv again.',
           })
         }
         return statusCode.success({
@@ -984,12 +985,13 @@ export class InventoryService implements OnModuleInit {
         return statusCode.success({
           id: createFile.id,
           success: false,
-          reason: 'Upload Failed. Upload again',
+          reason: 'somethingWrong',
+          // 'Upload Failed. Upload again',
         })
       }
     } catch (error) {
       this.loggers.error(error, `[MarchERR] uploadInventory error`, logctx)
-      return statusCode.internalError(error?.message)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -1084,7 +1086,7 @@ export class InventoryService implements OnModuleInit {
         `[MarchERR] getInventoryAllDeleted error`,
         logctx,
       )
-      return statusCode.internalError(error?.message)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -1157,7 +1159,7 @@ export class InventoryService implements OnModuleInit {
       }
     } catch (error) {
       this.loggers.error(error, `[MarchERR] recoveryHardDeleted error`, logctx)
-      return statusCode.internalError(error.meesage)
+      throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
