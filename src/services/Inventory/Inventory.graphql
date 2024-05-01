@@ -337,5 +337,6 @@ type Query {
     params: ParamsInventoryBranch
   ): InventoryBranchsDataResponse
   getInventoryAllDeleted: DeletedInventoryResponse
+  test: String
   # getFileUploadNames: [ResponseFileUploadNames]
 }

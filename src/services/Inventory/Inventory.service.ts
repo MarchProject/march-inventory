@@ -14,13 +14,31 @@ import { Constant, mapFunction, statusCode, dayjs } from '@march/core'
 import { get, isNil } from 'lodash'
 import { tranfromUploadCsv } from './inventory.dto'
 import { Cron, CronExpression } from '@nestjs/schedule'
+import { TranslationService } from 'src/common/i18n/translation.service'
+import { PathImpl2 } from '@nestjs/config'
+import { TranslateOptions } from 'nestjs-i18n'
+import { I18nTranslations } from 'src/generated/i18n.generated'
 
 @Injectable()
 export class InventoryService implements OnModuleInit {
   private readonly loggers = new Logger(InventoryService.name)
 
-  constructor(private readonly repos: PrismaService) {}
+  constructor(
+    private readonly repos: PrismaService,
+    private readonly translationService: TranslationService,
+  ) {}
   onModuleInit() {}
+
+  async test(): Promise<string> {
+    return await this.getLocal('translation.BadRequest.name')
+  }
+
+  private async getLocal(
+    key: PathImpl2<I18nTranslations>,
+    options: TranslateOptions = {},
+  ): Promise<string> {
+    return await this.translationService.translate(key, options)
+  }
 
   async getInventoryNames(
     req: ICurrentUser,
@@ -399,7 +417,7 @@ export class InventoryService implements OnModuleInit {
       this.loggers.debug({ type }, logctx)
       if (type.length > 0) {
         this.loggers.debug('type.length > 0', logctx)
-        return statusCode.onUse
+        return statusCode.onUse('')
       }
       const result = await this.repos.inventoryType.update({
         where: {
@@ -446,7 +464,7 @@ export class InventoryService implements OnModuleInit {
       })
       if (type.length > 0) {
         this.loggers.debug('type.length > 0', logctx)
-        return statusCode.onUse
+        return statusCode.onUse('')
       }
       const result = await this.repos.inventoryBrand.update({
         where: {
@@ -493,7 +511,7 @@ export class InventoryService implements OnModuleInit {
       })
       if (type.length > 0) {
         this.loggers.debug('type.length > 0', logctx)
-        return statusCode.onUse
+        return statusCode.onUse(await this.getLocal('translation.onUse.branch'))
       }
       const result = await this.repos.inventoryBranch.update({
         where: {
@@ -521,6 +539,7 @@ export class InventoryService implements OnModuleInit {
   async upsertInventory(
     input: common.UpsertInventoryInput,
     req: ICurrentUser,
+    LangHeader: string,
   ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryService, this.upsertInventory)
     const { shopsId, userName } = req
@@ -668,13 +687,17 @@ export class InventoryService implements OnModuleInit {
   async upsertInventoryType(
     input: common.UpsertInventoryTypeInput,
     req: ICurrentUser,
+    LangHeader: string,
   ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryService, this.upsertInventoryType)
     const { id, name, description } = input
     const { shopsId, userName } = req
     this.loggers.debug({ input, req }, logctx)
+
     if (!name) {
-      return statusCode.badRequest('name is requried')
+      return statusCode.badRequest(
+        await this.getLocal('translation.BadRequest.name'),
+      )
     }
     try {
       const findDup = await this.repos.inventoryType.findFirst({

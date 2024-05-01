@@ -1,4 +1,4 @@
-import { Resolver, Mutation, Args, Query } from '@nestjs/graphql'
+import { Resolver, Mutation, Args, Query, Context } from '@nestjs/graphql'
 import { Inject, Logger, UseGuards } from '@nestjs/common'
 import { logContext } from 'src/common/helpers/log'
 import { InventoryService } from './Inventory.service'
@@ -12,6 +12,16 @@ export class InventoryResolver {
 
   constructor() {}
   @Inject(InventoryService) private inventoryService: InventoryService
+
+  @Query(() => common.InventoryNameResponse, { name: 'test' })
+  async test(@Context() context): Promise<string> {
+    const logctx = logContext(InventoryResolver, this.getInventoryNames)
+    const { headers } = context.req
+    const LangHeader = headers['x-lang']
+    const result = await this.inventoryService.test()
+    this.loggers.debug({ result, LangHeader }, logctx)
+    return result
+  }
 
   @UseGuards(new UserAuthGuard(uamAuthRole.Any))
   @Query(() => common.InventoryNameResponse, { name: 'getInventoryNames' })
@@ -115,13 +125,20 @@ export class InventoryResolver {
   @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
   @Mutation(() => common.MutationInventoryResponse, { name: 'upsertInventory' })
   async upsertInventory(
+    @Context() context,
     @Args('input') input: common.UpsertInventoryInput,
     @CurrentUser() req: ICurrentUser,
   ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryResolver, this.upsertInventory)
-    this.loggers.debug({ req }, logctx)
+    const { headers } = context.req
+    const LangHeader = headers['x-lang']
+    this.loggers.debug({ req, LangHeader }, logctx)
     await this.inventoryService.checkUpsert(req.tasks, input.id, 'INUP', 'INCP')
-    const result = await this.inventoryService.upsertInventory(input, req)
+    const result = await this.inventoryService.upsertInventory(
+      input,
+      req,
+      LangHeader,
+    )
     return result
   }
 
@@ -132,11 +149,18 @@ export class InventoryResolver {
   async upsertInventoryType(
     @Args('input') input: common.UpsertInventoryTypeInput,
     @CurrentUser() req: ICurrentUser,
+    @Context() context,
   ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryResolver, this.upsertInventoryType)
+    const { headers } = context.req
+    const LangHeader = headers['x-lang']
     this.loggers.debug({ input }, logctx)
     await this.inventoryService.checkUpsert(req.tasks, input.id, 'INTU', 'INTC')
-    const result = await this.inventoryService.upsertInventoryType(input, req)
+    const result = await this.inventoryService.upsertInventoryType(
+      input,
+      req,
+      LangHeader,
+    )
     return result
   }
 

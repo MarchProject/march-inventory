@@ -1,0 +1,8 @@
+{
+  "BadRequest": {
+    "name": "Field name is requried"
+  },
+  "onUse": {
+    "branch": "Delete Branch Failed|This branch already use in product"
+  }
+}

@@ -7,9 +7,11 @@ import {
   inventoryGrpcPackageName,
   inventoryProtoPath,
 } from '@march/core'
+import { I18nValidationExceptionFilter } from 'nestjs-i18n'
 // import {} from '../../../proto/inventory/index.proto'
 // import { ConfigService } from '@march/core'
 // import { graphqlUploadExpress } from 'graphql-upload'
+import * as path from 'path'
 
 const config = ConfigService.load()
 
@@ -25,7 +27,17 @@ async function bootstrap() {
       protoPath: [inventoryProtoPath],
     },
   })
-  console.log({ grpcServer })
+
+  app.useGlobalFilters(
+    new I18nValidationExceptionFilter({
+      detailedErrors: false,
+    }),
+  )
+
+  console.log({
+    grpcServer,
+    __dirname: path.join(__dirname, '../../src/generated/i18n.generated.ts'),
+  })
   await grpcServer.listen()
 
   app.use(json({ limit: '50mb' }))

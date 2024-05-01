@@ -301,6 +301,8 @@ export abstract class IQuery {
     abstract getInventoryBranchs(params?: ParamsInventoryBranch): InventoryBranchsDataResponse | Promise<InventoryBranchsDataResponse>;
 
     abstract getInventoryAllDeleted(): DeletedInventoryResponse | Promise<DeletedInventoryResponse>;
+
+    abstract test(): string | Promise<string>;
 }
 
 export class RecoveryHardDeleted {
