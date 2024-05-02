@@ -11,6 +11,45 @@ export type I18nTranslations = {
         };
         "onUse": {
             "branch": string;
+            "brand": string;
+            "type": string;
+        };
+        "Success": {
+            "branch": string;
+            "brand": string;
+            "type": string;
+            "inventory": string;
+            "trash": {
+                "recovery": string;
+                "delete": string;
+            };
+        };
+        "Upload": {
+            "success": string;
+            "duplicated": string;
+            "lost": string;
+            "somethingWrong": string;
+        };
+        "Upsert": {
+            "success": {
+                "create": {
+                    "branch": string;
+                    "brand": string;
+                    "type": string;
+                    "inventory": string;
+                };
+                "update": {
+                    "branch": string;
+                    "brand": string;
+                    "type": string;
+                    "inventory": string;
+                };
+            };
+            "duplicated": string;
+        };
+        "favorite": {
+            "add": string;
+            "delete": string;
         };
     };
 };

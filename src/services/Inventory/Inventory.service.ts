@@ -383,7 +383,10 @@ export class InventoryService implements OnModuleInit {
       })
       this.loggers.debug({ result }, logctx)
 
-      return statusCode.success(result)
+      return statusCode.success(
+        result,
+        await this.getLocal('translation.Success.inventory'),
+      )
     } catch (error) {
       this.loggers.error(error, `[MarchERR] deleteInventory error`, logctx)
       throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
@@ -417,7 +420,7 @@ export class InventoryService implements OnModuleInit {
       this.loggers.debug({ type }, logctx)
       if (type.length > 0) {
         this.loggers.debug('type.length > 0', logctx)
-        return statusCode.onUse('')
+        return statusCode.onUse(await this.getLocal('translation.onUse.type'))
       }
       const result = await this.repos.inventoryType.update({
         where: {
@@ -431,7 +434,10 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ result }, logctx)
-      return statusCode.success(result)
+      return statusCode.success(
+        result,
+        await this.getLocal('translation.Success.type'),
+      )
     } catch (error) {
       this.loggers.error(error, `[MarchERR] deleteTypeInventory error`, logctx)
       throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
@@ -464,7 +470,7 @@ export class InventoryService implements OnModuleInit {
       })
       if (type.length > 0) {
         this.loggers.debug('type.length > 0', logctx)
-        return statusCode.onUse('')
+        return statusCode.onUse(await this.getLocal('translation.onUse.brand'))
       }
       const result = await this.repos.inventoryBrand.update({
         where: {
@@ -478,7 +484,10 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ result }, logctx)
-      return statusCode.success(result)
+      return statusCode.success(
+        result,
+        await this.getLocal('translation.Success.brand'),
+      )
     } catch (error) {
       this.loggers.error(error, `[MarchERR] deleteBrandInventory error`, logctx)
       throw new HttpException(error?.message, HttpStatus.INTERNAL_SERVER_ERROR)
@@ -525,7 +534,10 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ result }, logctx)
-      return statusCode.success(result)
+      return statusCode.success(
+        result,
+        await this.getLocal('translation.Success.branch'),
+      )
     } catch (error) {
       this.loggers.error(
         error,
@@ -613,13 +625,17 @@ export class InventoryService implements OnModuleInit {
       })
       this.loggers.debug({ findDup }, logctx)
       if (!id && findDup) {
-        return statusCode.duplicated
+        return statusCode.duplicated(
+          await this.getLocal('translation.Upsert.duplicated'),
+        )
       }
       // if (id && findDup && id === findDup.id) {
       //   return statusCode.badRequest('2')
       // }
       if (id && findDup && id !== findDup.id) {
-        return statusCode.badRequest('1') // dup branch + name
+        return statusCode.badRequest(
+          await this.getLocal('translation.Upsert.duplicated'),
+        ) // dup branch + name
       }
       const width = get(size, 'width', '0')
       const length = get(size, 'length', '0')
@@ -676,7 +692,12 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ result }, logctx)
-      return statusCode.success({ id: result.id })
+      return statusCode.success(
+        { id: result.id },
+        await this.getLocal(
+          `translation.Upsert.success.${id ? 'update' : 'create'}.inventory`,
+        ),
+      )
     } catch (error) {
       this.loggers.debug({ error }, logctx)
       this.loggers.error(error, `[MarchERR] upsertInventory error`, logctx)
@@ -712,10 +733,14 @@ export class InventoryService implements OnModuleInit {
       })
       this.loggers.debug({ findDup }, logctx)
       if (!id && findDup) {
-        return statusCode.duplicated
+        return statusCode.duplicated(
+          await this.getLocal('translation.Upsert.duplicated'),
+        )
       }
       if (id && findDup && id !== findDup.id) {
-        return statusCode.badRequest('')
+        return statusCode.badRequest(
+          await this.getLocal('translation.Upsert.duplicated'),
+        )
       }
 
       const result = await this.repos.inventoryType.upsert({
@@ -742,7 +767,12 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ result }, logctx)
-      return statusCode.success(result)
+      return statusCode.success(
+        result,
+        await this.getLocal(
+          `translation.Upsert.success.${id ? 'update' : 'create'}.type`,
+        ),
+      )
     } catch (error) {
       this.loggers.debug({ error }, logctx)
       this.loggers.error(error, `[MarchERR] upsertInventoryType error`, logctx)
@@ -775,10 +805,14 @@ export class InventoryService implements OnModuleInit {
       })
       this.loggers.debug({ findDup }, logctx)
       if (!id && findDup) {
-        return statusCode.duplicated
+        return statusCode.duplicated(
+          await this.getLocal('translation.Upsert.duplicated'),
+        )
       }
       if (id && findDup && id !== findDup.id) {
-        return statusCode.badRequest('')
+        return statusCode.badRequest(
+          await this.getLocal('translation.Upsert.duplicated'),
+        )
       }
 
       const result = await this.repos.inventoryBrand.upsert({
@@ -805,7 +839,12 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ result }, logctx)
-      return statusCode.success(result)
+      return statusCode.success(
+        result,
+        await this.getLocal(
+          `translation.Upsert.success.${id ? 'update' : 'create'}.brand`,
+        ),
+      )
     } catch (error) {
       this.loggers.debug({ error }, logctx)
       this.loggers.error(error, `[MarchERR] upsertInventoryBrand error`, logctx)
@@ -838,10 +877,14 @@ export class InventoryService implements OnModuleInit {
       })
       this.loggers.debug({ findDup }, logctx)
       if (!id && findDup) {
-        return statusCode.duplicated
+        return statusCode.duplicated(
+          await this.getLocal('translation.Upsert.duplicated'),
+        )
       }
       if (id && findDup && id !== findDup.id) {
-        return statusCode.badRequest('')
+        return statusCode.badRequest(
+          await this.getLocal('translation.Upsert.duplicated'),
+        )
       }
 
       const result = await this.repos.inventoryBranch.upsert({
@@ -868,7 +911,12 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ result }, logctx)
-      return statusCode.success(result)
+      return statusCode.success(
+        result,
+        await this.getLocal(
+          `translation.Upsert.success.${id ? 'update' : 'create'}.branch`,
+        ),
+      )
     } catch (error) {
       this.loggers.debug({ error }, logctx)
       this.loggers.error(error, `[MarchERR] upsertBranchType error`, logctx)
@@ -908,7 +956,12 @@ export class InventoryService implements OnModuleInit {
         },
       })
       this.loggers.debug({ result }, logctx)
-      return statusCode.success(result)
+      return statusCode.success(
+        result,
+        await this.getLocal(
+          `translation.favorite.${!checkShopId.favorite ? 'add' : 'delete'}`,
+        ),
+      )
     } catch (error) {
       this.loggers.error(error, `[MarchERR] favoriteInventory error`, logctx)
 
@@ -933,12 +986,15 @@ export class InventoryService implements OnModuleInit {
       })
       this.loggers.debug({ checkNames }, logctx)
       if (checkNames) {
-        return statusCode.success({
-          id: '',
-          success: false,
-          reason: 'duplicated',
-          //'Duplicated Filename. Upload again.'
-        })
+        return statusCode.success(
+          {
+            id: '',
+            success: false,
+            reason: 'duplicated',
+            //'Duplicated Filename. Upload again.'
+          },
+          await this.getLocal('translation.Upload.duplicated'),
+        )
       }
       const createFile = await this.repos.inventoryFile.create({
         data: {
@@ -980,18 +1036,24 @@ export class InventoryService implements OnModuleInit {
               id: createFile.id,
             },
           })
-          return statusCode.success({
-            id: '',
-            success: false,
-            reason: 'lost',
-            // 'maybe some item lost or duplicated. Please upload csv again.',
-          })
+          return statusCode.success(
+            {
+              id: '',
+              success: false,
+              reason: 'lost',
+              // 'maybe some item lost or duplicated. Please upload csv again.',
+            },
+            await this.getLocal('translation.Upload.lost'),
+          )
         }
-        return statusCode.success({
-          id: createFile.id,
-          success: true,
-          reason: '',
-        })
+        return statusCode.success(
+          {
+            id: createFile.id,
+            success: true,
+            reason: '',
+          },
+          await this.getLocal('translation.Upload.success'),
+        )
       } catch (error) {
         this.loggers.error(error, 'uploadInventory', logctx)
 
@@ -1005,12 +1067,15 @@ export class InventoryService implements OnModuleInit {
             id: createFile.id,
           },
         })
-        return statusCode.success({
-          id: createFile.id,
-          success: false,
-          reason: 'somethingWrong',
-          // 'Upload Failed. Upload again',
-        })
+        return statusCode.success(
+          {
+            id: createFile.id,
+            success: false,
+            reason: 'somethingWrong',
+            // 'Upload Failed. Upload again',
+          },
+          await this.getLocal('translation.Upload.somethingWrong'),
+        )
       }
     } catch (error) {
       this.loggers.error(error, `[MarchERR] uploadInventory error`, logctx)
@@ -1151,10 +1216,13 @@ export class InventoryService implements OnModuleInit {
         })
         this.loggers.debug({ deleted }, logctx)
 
-        return statusCode.success({
-          id: deleted?.id,
-          type: type,
-        })
+        return statusCode.success(
+          {
+            id: deleted?.id,
+            type: type,
+          },
+          await this.getLocal('translation.Success.trash.delete'),
+        )
       } else if (mode === common.DeletedMode.RECOVERY) {
         if (checkShopId.shopsId !== shopsId || checkShopId.deleted === false) {
           return statusCode.forbidden('Unauthorized ShopId')
@@ -1174,11 +1242,14 @@ export class InventoryService implements OnModuleInit {
         })
         this.loggers.debug({ deleted }, logctx)
 
-        return statusCode.success({
-          id: deleted?.id,
-          type: type,
-          mode: mode,
-        })
+        return statusCode.success(
+          {
+            id: deleted?.id,
+            type: type,
+            mode: mode,
+          },
+          await this.getLocal('translation.Success.trash.recovery'),
+        )
       }
     } catch (error) {
       this.loggers.error(error, `[MarchERR] recoveryHardDeleted error`, logctx)

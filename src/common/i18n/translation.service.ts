@@ -20,6 +20,6 @@ export class TranslationService {
   ): Promise<string> {
     const { headers } = this.context.req
     const LangHeader = headers['lang']
-    return await this.i18n.translate(key, { lang: LangHeader })
+    return await this.i18n.translate(key, { lang: LangHeader, ...options })
   }
 }
