@@ -3,7 +3,7 @@ import { Inject, Logger, UseGuards } from '@nestjs/common'
 import { logContext } from 'src/common/helpers/log'
 import { InventoryService } from './Inventory.service'
 import * as common from 'src/types'
-import { UserAuthGuard, uamAuthRole } from '@march/core'
+import { UserAuthGuard, uam, uamAuthRole } from '@march/core'
 import { CurrentUser, ICurrentUser } from 'src/common/helpers/user'
 
 @Resolver(() => common.Inventory)
@@ -23,7 +23,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
+  @UseGuards(new UserAuthGuard(uam.AnyAdminScope))
   @Query(() => common.InventoryNameResponse, { name: 'getInventoryNames' })
   async getInventoryNames(
     @CurrentUser() req: ICurrentUser,
@@ -34,7 +34,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
+  @UseGuards(new UserAuthGuard(uam.AnyAdminScope))
   @Query(() => common.InventoriesResponse, { name: 'getInventories' })
   async getInventories(
     @Args('params') params: common.ParamsInventory,
@@ -42,11 +42,11 @@ export class InventoryResolver {
   ): Promise<common.InventoriesResponse> {
     const logctx = logContext(InventoryResolver, this.getInventories)
     const result = await this.inventoryService.getInventories(params, req)
-    this.loggers.debug({ result }, logctx)
+    this.loggers.debug({ result, req }, logctx)
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
+  @UseGuards(new UserAuthGuard(uam.AnyAdminScope))
   @Query(() => common.InventoryDataResponse, { name: 'getInventory' })
   async getInventory(
     @Args('id') id: string,
@@ -58,7 +58,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
+  @UseGuards(new UserAuthGuard(uam.AnyAdminScope))
   @Query(() => common.InventoryTypesResponse, { name: 'getInventoryTypes' })
   async getInventoryTypes(
     @CurrentUser() req: ICurrentUser,
@@ -70,7 +70,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
+  @UseGuards(new UserAuthGuard(uam.AnyAdminScope))
   @Query(() => common.InventoryType, { name: 'getInventoryType' })
   async getInventoryType(
     @Args('id') id: string,
@@ -82,7 +82,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
+  @UseGuards(new UserAuthGuard(uam.AnyAdminScope))
   @Query(() => common.InventoryBrandsDataResponse, {
     name: 'getInventoryBrands',
   })
@@ -96,7 +96,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
+  @UseGuards(new UserAuthGuard(uam.AnyAdminScope))
   @Query(() => common.InventoryBranchsDataResponse, {
     name: 'getInventoryBranchs',
   })
@@ -110,7 +110,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
+  @UseGuards(new UserAuthGuard(uam.AnyAdminScope))
   @Query(() => common.InventoryBrand, { name: 'getInventoryBrand' })
   async getInventoryBrand(
     @Args('id') id: string,
@@ -122,7 +122,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
+  @UseGuards(new UserAuthGuard('INMaker'))
   @Mutation(() => common.MutationInventoryResponse, { name: 'upsertInventory' })
   async upsertInventory(
     @Context() context,
@@ -142,7 +142,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
+  @UseGuards(new UserAuthGuard('INTypeMaker'))
   @Mutation(() => common.MutationInventoryResponse, {
     name: 'upsertInventoryType',
   })
@@ -164,7 +164,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
+  @UseGuards(new UserAuthGuard('INBrandMaker'))
   @Mutation(() => common.MutationInventoryResponse, {
     name: 'upsertInventoryBrand',
   })
@@ -174,7 +174,7 @@ export class InventoryResolver {
   ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryResolver, this.upsertInventoryBrand)
     this.loggers.debug({ input }, logctx)
-    await this.inventoryService.checkUpsert(req.tasks, input.id, 'INBU', 'INBC')
+    // await this.inventoryService.checkUpsert(req.tasks, input.id, 'INBU', 'INBC')
     const result = await this.inventoryService.upsertInventoryBrand(input, req)
     return result
   }
@@ -193,7 +193,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
+  @UseGuards(new UserAuthGuard('INBranchMaker'))
   @Mutation(() => common.MutationInventoryResponse, {
     name: 'upsertInventoryBranch',
   })
@@ -203,17 +203,17 @@ export class InventoryResolver {
   ): Promise<common.MutationInventoryResponse> {
     const logctx = logContext(InventoryResolver, this.upsertInventoryBranch)
     this.loggers.debug({ input }, logctx)
-    await this.inventoryService.checkUpsert(
-      req.tasks,
-      input.id,
-      'INBCU',
-      'INBCC',
-    )
+    // await this.inventoryService.checkUpsert(
+    //   req.tasks,
+    //   input.id,
+    //   'INBCU',
+    //   'INBCC',
+    // )
     const result = await this.inventoryService.upsertInventoryBranch(input, req)
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
+  @UseGuards(new UserAuthGuard('INBranchMaker'))
   @Mutation(() => common.MutationInventoryResponse, {
     name: 'deleteInventoryBranch',
   })
@@ -227,7 +227,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.Any))
+  @UseGuards(new UserAuthGuard('INMaker'))
   @Mutation(() => common.MutationInventoryResponse, {
     name: 'favoriteInventory',
   })
@@ -242,7 +242,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
+  @UseGuards(new UserAuthGuard('INMaker'))
   @Mutation(() => common.MutationInventoryResponse, { name: 'deleteInventory' })
   async deleteInventory(
     @Args('id') id: string,
@@ -254,7 +254,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
+  @UseGuards(new UserAuthGuard('INTypeMaker'))
   @Mutation(() => common.MutationInventoryResponse, {
     name: 'deleteInventoryType',
   })
@@ -268,7 +268,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
+  @UseGuards(new UserAuthGuard('INCSV'))
   @Mutation(() => common.UploadInventoryResponse, { name: 'uploadInventory' })
   async uploadInventory(
     @Args('input') input: common.UploadInventoryInput,
@@ -286,7 +286,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
+  @UseGuards(new UserAuthGuard('INTrashMaker'))
   @Mutation(() => common.RecoveryHardDeletedResponse, {
     name: 'recoveryHardDeleted',
   })
@@ -300,7 +300,7 @@ export class InventoryResolver {
     return result
   }
 
-  @UseGuards(new UserAuthGuard(uamAuthRole.SuperAdmin))
+  @UseGuards(new UserAuthGuard(uam.AnyAdminScope))
   @Query(() => common.DeletedInventoryResponse, {
     name: 'getInventoryAllDeleted',
   })
